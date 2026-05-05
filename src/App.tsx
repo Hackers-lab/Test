@@ -1,10 +1,13 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import { Layout } from "./components/Layout";
 import { Download, Monitor, Plus, BookOpen } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { Forum } from "./pages/Forum";
 import { Tools } from "./pages/Tools";
+import { Downloads } from "./pages/Downloads";
+import { Support } from "./pages/Support";
+import { About } from "./pages/About";
 
 // Placeholder data for github releases
 interface Release {
@@ -14,7 +17,7 @@ interface Release {
   assets: { name: string; size: number; download_url: string }[];
 }
 
-const PageTransition = ({ children }: { children: React.ReactNode }) => (
+export const PageTransition = ({ children }: { children: React.ReactNode }) => (
   <motion.div
     initial={{ opacity: 0, y: 10 }}
     animate={{ opacity: 1, y: 0 }}
@@ -45,9 +48,8 @@ const AppFeatureCard = ({ repoName, title, description, to }: { repoName: string
       
       <div className="relative flex items-center gap-3 mb-4">
         <div className="px-3 py-1 rounded-full bg-cyan-500/20 border border-cyan-500/30 text-[10px] uppercase tracking-widest font-bold text-cyan-400">
-          GitHub Repo
+          Official Release
         </div>
-        <span className="text-slate-500 text-xs font-mono">{repoName}</span>
       </div>
       
       <h2 className="text-3xl font-extrabold text-white mb-3">
@@ -60,9 +62,9 @@ const AppFeatureCard = ({ repoName, title, description, to }: { repoName: string
       </p>
       
       <div className="mt-auto flex flex-col sm:flex-row sm:items-center gap-4">
-        <a href={to} className="px-6 py-3 rounded-2xl bg-gradient-to-r from-cyan-600 to-blue-700 text-white font-bold text-center shadow-[0_10px_25px_-5px_rgba(6,182,212,0.4)] hover:scale-105 active:scale-95 transition-all">
+        <Link to={to} className="px-6 py-3 rounded-2xl bg-gradient-to-r from-cyan-600 to-blue-700 text-white font-bold text-center shadow-[0_10px_25px_-5px_rgba(6,182,212,0.4)] hover:scale-105 active:scale-95 transition-all">
           Explore App
-        </a>
+        </Link>
         <div className="flex gap-4 items-center">
           <div className="flex flex-col">
             <span className="text-[10px] text-slate-500 uppercase font-bold tracking-tighter">Updated</span>
@@ -85,7 +87,7 @@ const Home = () => {
             Welcome to WB<span className="text-cyan-400">TOOLS</span>
           </h1>
           <p className="text-xl text-slate-400 max-w-2xl mx-auto">
-            Discover our collection of advanced open-source tools and calculators fetched straight from GitHub.
+            Discover our collection of advanced tools, estimators, and automation systems tailored for precision.
           </p>
         </div>
 
@@ -95,21 +97,21 @@ const Home = () => {
             repoName="Hackers-lab/spotimageviewer"
             title="Spot Image Viewer"
             description="A specialized software tool for viewing, analyzing, and processing complex spot images."
-            to="/tools"
+            to="/tools?app=spotimageviewer"
           />
           <AppFeatureCard 
             repoName="Hackers-lab/estimator"
             title="Estimator"
             description="A robust estimation utility to calculate, manage, and overview project dimensions."
-            to="/tools"
+            to="/tools?app=estimator"
           />
         </div>
 
         {/* Deployment Info Section (from the old sidebar) */}
         <div className="bg-[#0f172a] border border-white/5 rounded-3xl p-8 mb-8 max-w-3xl mx-auto w-full text-center">
-          <h3 className="text-white font-bold mb-4 text-xl">About Default Configuration</h3>
+          <h3 className="text-white font-bold mb-4 text-xl">About Updates</h3>
           <p className="text-sm text-slate-400 leading-relaxed max-w-lg mx-auto">
-            These tools are dynamically synced with the Hackers-lab repositories. Downloads, releases, and documentation are pulled automatically for the latest features and patches.
+            These tools are dynamically synced directly from our production systems. Downloads, releases, and documentation are pulled automatically for the latest features and patches.
           </p>
         </div>
       </div>
@@ -117,7 +119,7 @@ const Home = () => {
   );
 };
 
-const GenericPage = ({ title, desc }: { title: string, desc: string }) => (
+export const GenericPage = ({ title, desc }: { title: string, desc: string }) => (
   <PageTransition>
     <div className="p-8 max-w-7xl mx-auto h-full flex flex-col items-center justify-center text-center">
       <div className="bg-slate-900/40 border border-white/5 rounded-3xl p-12 max-w-2xl w-full shadow-2xl relative overflow-hidden">
@@ -128,10 +130,6 @@ const GenericPage = ({ title, desc }: { title: string, desc: string }) => (
     </div>
   </PageTransition>
 );
-
-const Downloads = () => <GenericPage title="Downloads Archives" desc="Release binaries and legacy assets will appear here via GitHub." />;
-const Support = () => <GenericPage title="Support & Resources" desc="Get help, read documentation, and find answers." />;
-const About = () => <GenericPage title="About WBTools" desc="Building the ultimate tools integration ecosystem." />;
 
 export default function App() {
   return (

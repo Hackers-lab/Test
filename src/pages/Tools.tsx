@@ -1,58 +1,74 @@
 import { useState, useEffect } from 'react';
-import { Download, Monitor, Plus, BookOpen, AlertCircle, PlayCircle } from 'lucide-react';
+import { Download, PlayCircle, BookOpen, AlertCircle } from 'lucide-react';
 import { motion } from 'motion/react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { useSearchParams } from 'react-router-dom';
 
 interface Release {
   name: string;
   tag_name: string;
   published_at: string;
   assets: { name: string; size: number; browser_download_url: string }[];
+  body: string;
 }
 
 export function Tools() {
-  const [selectedRepo, setSelectedRepo] = useState<'spotimageviewer' | 'estimator'>('spotimageviewer');
+  const [searchParams] = useSearchParams();
+  const initApp = searchParams.get('app') === 'estimator' ? 'estimator' : 'spotimageviewer';
+  
+  const [selectedRepo, setSelectedRepo] = useState<'spotimageviewer' | 'estimator'>(initApp);
   const [release, setRelease] = useState<Release | null>(null);
   const [readme, setReadme] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [ytLink, setYtLink] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
       setError('');
+      setYtLink(null);
+      
       try {
         const repoName = `Hackers-lab/${selectedRepo}`;
         
-        // Fetch Release
+        let releaseBody = '';
         const relRes = await fetch(`https://api.github.com/repos/${repoName}/releases/latest`);
         if (relRes.ok) {
-           setRelease(await relRes.json());
+           const relData = await relRes.json();
+           setRelease(relData);
+           releaseBody = relData.body || '';
         } else {
            setRelease(null);
         }
 
-        // Fetch README
         const readmeRes = await fetch(`https://raw.githubusercontent.com/${repoName}/main/README.md`);
+        let readmeText = '';
         if (readmeRes.ok) {
-           setReadme(await readmeRes.text());
+           readmeText = await readmeRes.text();
+           setReadme(readmeText);
         } else {
            setReadme('');
         }
+
+        // Try to extract YouTube URL from README or Release Body
+        const combinedText = releaseBody + "\n" + readmeText;
+        const ytRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/i;
+        const match = combinedText.match(ytRegex);
+        
+        if (match && match[1]) {
+           setYtLink(`https://www.youtube.com/embed/${match[1]}`);
+        }
+
       } catch (err) {
-        setError('Failed to fetch data from GitHub.');
+        setError('Failed to fetch data from source distribution.');
       } finally {
         setLoading(false);
       }
     }
     fetchData();
   }, [selectedRepo]);
-
-  const ytbLinks: Record<string, string> = {
-    'spotimageviewer': 'https://www.youtube.com/embed/dQw4w9WgXcQ', // Default placeholder
-    'estimator': 'https://www.youtube.com/embed/dQw4w9WgXcQ'
-  };
 
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 items-start h-full pb-20">
@@ -87,7 +103,7 @@ export function Tools() {
         ) : error ? (
            <div className="flex-1 bg-slate-900/40 border border-red-500/20 rounded-3xl p-12 flex flex-col items-center justify-center text-center">
              <AlertCircle className="w-12 h-12 text-red-400 mb-4" />
-             <h3 className="text-xl font-bold text-white mb-2">Error Fetching Repository</h3>
+             <h3 className="text-xl font-bold text-white mb-2">System Outage</h3>
              <p className="text-slate-400">{error}</p>
            </div>
         ) : (
@@ -100,11 +116,10 @@ export function Tools() {
               <div className="relative flex items-center justify-between gap-4 mb-6">
                 <div className="flex items-center gap-3">
                    <div className="px-3 py-1 rounded-full bg-cyan-500/20 border border-cyan-500/30 text-[10px] uppercase tracking-widest font-bold text-cyan-400">
-                     {release ? 'Stable Release' : 'Source Code Only'}
+                     {release ? 'Stable Release' : 'Development Build'}
                    </div>
                    {release && <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>}
                 </div>
-                <span className="text-slate-500 text-xs font-mono">Hackers-lab/{selectedRepo}</span>
               </div>
               
               <h1 className="text-4xl font-black text-white mb-2 leading-tight">
@@ -127,34 +142,36 @@ export function Tools() {
                    </div>
                  </div>
               ) : (
-                 <p className="mt-4 text-slate-500 border border-dashed border-white/10 rounded-xl p-4 inline-block">No official binary releases found. Clone from source available.</p>
+                 <p className="mt-4 text-slate-500 border border-dashed border-white/10 rounded-xl p-4 inline-block">No official binary releases found for this distribution.</p>
               )}
             </div>
 
-            {/* Video Tutorial */}
-            <div className="bg-slate-900/60 border border-cyan-500/20 rounded-3xl shadow-[0_0_40px_rgba(6,182,212,0.05)] overflow-hidden">
-               <div className="p-4 border-b border-white/5 bg-slate-900/80 flex items-center gap-2">
-                 <PlayCircle className="w-4 h-4 text-cyan-400" />
-                 <h3 className="text-sm font-bold text-white uppercase tracking-wider">Video Tutorial</h3>
-               </div>
-               <div className="aspect-video w-full bg-black">
-                 <iframe 
-                   className="w-full h-full" 
-                   src={ytbLinks[selectedRepo]} 
-                   title="YouTube video player" 
-                   frameBorder="0" 
-                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                   allowFullScreen
-                 ></iframe>
-               </div>
-            </div>
+            {/* Video Tutorial (Dynamic) */}
+            {ytLink && (
+              <div className="bg-slate-900/60 border border-cyan-500/20 rounded-3xl shadow-[0_0_40px_rgba(6,182,212,0.05)] overflow-hidden">
+                 <div className="p-4 border-b border-white/5 bg-slate-900/80 flex items-center gap-2">
+                   <PlayCircle className="w-4 h-4 text-cyan-400" />
+                   <h3 className="text-sm font-bold text-white uppercase tracking-wider">Video Tutorial</h3>
+                 </div>
+                 <div className="aspect-video w-full bg-black">
+                   <iframe 
+                     className="w-full h-full" 
+                     src={ytLink} 
+                     title="YouTube video player" 
+                     frameBorder="0" 
+                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                     allowFullScreen
+                   ></iframe>
+                 </div>
+              </div>
+            )}
 
             {/* README Content */}
             {readme && (
                <div className="bg-[#0f172a] border border-white/5 rounded-3xl p-6 md:p-10">
                  <h3 className="text-white font-bold mb-6 flex items-center gap-2 pb-4 border-b border-white/5">
                    <BookOpen className="w-4 h-4 text-cyan-500" />
-                   Documentation (README.md)
+                   Documentation
                  </h3>
                  <div className="markdown-body prose prose-invert prose-cyan max-w-none 
                     prose-headings:font-bold prose-headings:tracking-tight 
