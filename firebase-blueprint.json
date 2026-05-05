@@ -1,0 +1,63 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "A user profile in the application.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "email": { "type": "string" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["uid", "displayName", "email", "createdAt"]
+    },
+    "ForumPost": {
+      "title": "Forum Post",
+      "description": "A discussion post in the forum.",
+      "type": "object",
+      "properties": {
+        "authorId": { "type": "string" },
+        "authorName": { "type": "string" },
+        "authorPhotoURL": { "type": "string" },
+        "title": { "type": "string", "maxLength": 100 },
+        "content": { "type": "string", "maxLength": 5000 },
+        "createdAt": { "type": "number", "description": "Timestamp" },
+        "updatedAt": { "type": "number", "description": "Timestamp" },
+        "likesCount": { "type": "number" },
+        "commentsCount": { "type": "number" }
+      },
+      "required": ["authorId", "authorName", "title", "content", "createdAt", "updatedAt", "likesCount", "commentsCount"]
+    },
+    "ForumComment": {
+      "title": "Forum Comment",
+      "description": "A comment on a forum post.",
+      "type": "object",
+      "properties": {
+        "postId": { "type": "string" },
+        "authorId": { "type": "string" },
+        "authorName": { "type": "string" },
+        "authorPhotoURL": { "type": "string" },
+        "content": { "type": "string", "maxLength": 2000 },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["postId", "authorId", "authorName", "content", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "User profiles. Moderated by Auth token."
+    },
+    "posts/{postId}": {
+      "schema": { "$ref": "#/entities/ForumPost" },
+      "description": "Global forum posts."
+    },
+    "posts/{postId}/comments/{commentId}": {
+      "schema": { "$ref": "#/entities/ForumComment" },
+      "description": "Comments attached to a specific post."
+    }
+  }
+}

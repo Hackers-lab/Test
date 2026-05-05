@@ -1,0 +1,105 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function isValidId(id) {
+       return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    match /users/{userId} {
+      function isValidUser(data) {
+        return data.size() >= 4
+          && data.uid is string && data.uid == request.auth.uid
+          && data.displayName is string && data.displayName.size() <= 100
+          && data.email is string && data.email == request.auth.token.email
+          && data.createdAt is number;
+      }
+
+      allow get: if isSignedIn() && request.auth.uid == userId;
+      allow create: if isVerified() && isValidId(userId) && userId == request.auth.uid && isValidUser(incoming()) && incoming().createdAt == request.time.toMillis();
+      allow update: if isVerified() && userId == request.auth.uid && isValidUser(incoming()) 
+        && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoURL'])
+        && incoming().uid == existing().uid
+        && incoming().createdAt == existing().createdAt;
+    }
+
+    match /posts/{postId} {
+      function isValidPost(data) {
+        return data.keys().hasAll(['authorId', 'authorName', 'title', 'content', 'createdAt', 'updatedAt', 'likesCount', 'commentsCount'])
+          && data.authorId is string && data.authorId == request.auth.uid
+          && data.authorName is string && data.authorName.size() <= 100
+          && data.title is string && data.title.size() > 0 && data.title.size() <= 100
+          && data.content is string && data.content.size() > 0 && data.content.size() <= 5000
+          && data.createdAt is number
+          && data.updatedAt is number
+          && data.likesCount is number
+          && data.commentsCount is number;
+      }
+
+      allow read: if true; // Publicly readable forum
+      allow create: if isVerified() && isValidId(postId) && isValidPost(incoming())
+        && incoming().createdAt == request.time.toMillis()
+        && incoming().updatedAt == request.time.toMillis()
+        && incoming().likesCount == 0
+        && incoming().commentsCount == 0;
+        
+      allow update: if isVerified() && (
+        (incoming().authorId == request.auth.uid && incoming().diff(existing()).affectedKeys().hasOnly(['title', 'content', 'updatedAt']) 
+          && incoming().title is string && incoming().title.size() > 0 && incoming().title.size() <= 100
+          && incoming().content is string && incoming().content.size() > 0 && incoming().content.size() <= 5000
+          && incoming().updatedAt == request.time.toMillis()) ||
+        // Action: Comment added / removed
+        (incoming().diff(existing()).affectedKeys().hasOnly(['commentsCount']) 
+          && incoming().commentsCount is number && (incoming().commentsCount == existing().commentsCount + 1 || incoming().commentsCount == existing().commentsCount - 1)) ||
+        // Action: Like added / removed
+        (incoming().diff(existing()).affectedKeys().hasOnly(['likesCount'])
+          && incoming().likesCount is number && (incoming().likesCount == existing().likesCount + 1 || incoming().likesCount == existing().likesCount - 1))
+      );
+      
+      allow delete: if isVerified() && existing().authorId == request.auth.uid;
+    }
+
+    match /posts/{postId}/comments/{commentId} {
+      function isValidComment(data) {
+        return data.keys().hasAll(['postId', 'authorId', 'authorName', 'content', 'createdAt', 'updatedAt'])
+          && data.postId is string && data.postId == postId
+          && data.authorId is string && data.authorId == request.auth.uid
+          && data.authorName is string && data.authorName.size() <= 100
+          && data.content is string && data.content.size() > 0 && data.content.size() <= 2000
+          && data.createdAt is number
+          && data.updatedAt is number;
+      }
+
+      allow read: if true;
+      allow create: if isVerified() && isValidId(postId) && isValidId(commentId) && isValidComment(incoming())
+        && incoming().createdAt == request.time.toMillis()
+        && incoming().updatedAt == request.time.toMillis()
+        && existsAfter(/databases/$(database)/documents/posts/$(postId)); // Needs commentsCount increment in same batch
+
+      allow update: if isVerified() && existing().authorId == request.auth.uid && isValidComment(incoming())
+        && incoming().diff(existing()).affectedKeys().hasOnly(['content', 'updatedAt'])
+        && incoming().updatedAt == request.time.toMillis();
+        
+      allow delete: if isVerified() && existing().authorId == request.auth.uid;
+    }
+  }
+}
