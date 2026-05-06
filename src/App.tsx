@@ -80,29 +80,29 @@ const Home = () => {
     <PageTransition>
       <div className="p-4 md:p-8 max-w-7xl mx-auto h-full flex flex-col">
         {/* Header Setup */}
-        <div className="py-12 text-center relative flex flex-col items-center">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[300px] bg-cyan-500/10 rounded-full blur-[100px] -z-10 pointer-events-none"></div>
-          <motion.div 
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="w-24 h-24 mb-8 rounded-full bg-slate-900 border border-white/10 p-0 overflow-hidden shadow-[0_0_50px_rgba(6,182,212,0.2)]"
-          >
-            <img 
-              src="/logo.png" 
-              alt="WBSEDCL Logo" 
-              className="w-full h-full object-cover" 
-              referrerPolicy="no-referrer" 
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = "/logo.svg";
-              }}
-            />
-          </motion.div>
-          <h1 className="text-5xl md:text-6xl font-black text-white mb-6 tracking-tight">
-            Welcome to <span className="text-cyan-400">WBSEDCL TOOLS</span>
-          </h1>
-          <p className="text-xl text-slate-400 max-w-2xl mx-auto">
-            Discover our collection of advanced tools, estimators, and automation systems tailored for precision.
-          </p>
+        <div className="py-8 md:py-16 text-center relative flex flex-col items-center">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[200px] bg-cyan-500/5 rounded-full blur-[100px] -z-10 pointer-events-none"></div>
+          
+          <div className="flex flex-row items-center justify-center gap-4 md:gap-6 mb-2">
+            <motion.div 
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="w-16 h-16 md:w-24 md:h-24 rounded-full bg-slate-900 border border-white/10 p-1 overflow-hidden shadow-[0_0_30px_rgba(6,182,212,0.2)] shrink-0"
+            >
+              <img 
+                src="/logo.png" 
+                alt="WBSEDCL Logo" 
+                className="w-full h-full object-contain" 
+                referrerPolicy="no-referrer" 
+              />
+            </motion.div>
+            <div className="flex flex-col items-start text-left">
+              <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-white tracking-tighter leading-none">
+                WBSEDCL <span className="text-cyan-400">TOOLS</span>
+              </h1>
+              <p className="text-sm md:text-lg text-slate-400 font-medium mt-1">Advanced Utility Solutions</p>
+            </div>
+          </div>
         </div>
 
         {/* Featured Apps Showcase */}
