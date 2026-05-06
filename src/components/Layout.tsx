@@ -79,13 +79,23 @@ export function Layout() {
 
       {/* Navigation */}
       <nav className="h-16 px-4 md:px-8 flex items-center justify-between border-b border-white/10 bg-slate-900/50 backdrop-blur-xl shrink-0 sticky top-0 z-50">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 shadow-[0_0_15px_rgba(6,182,212,0.5)] flex items-center justify-center">
-            <span className="font-black text-white text-xs">WT</span>
-          </div>
-          <span className="text-xl font-bold tracking-tight text-white">
-            Wbsedcl <span className="text-cyan-400">tools</span>
-          </span>
+        <div className="flex items-center gap-4">
+          <Link to="/" className="flex items-center gap-3 group">
+            <div className="w-10 h-10 rounded-full bg-slate-900 border border-white/10 p-0 overflow-hidden group-hover:border-cyan-500/50 transition-all shadow-[0_0_20px_rgba(6,182,212,0.15)]">
+              <img 
+                src="/logo.png" 
+                alt="WBSEDCL Tools Logo" 
+                className="w-full h-full object-cover"
+                referrerPolicy="no-referrer"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = "/logo.svg";
+                }}
+              />
+            </div>
+            <span className="text-xl font-black tracking-tighter text-white hidden sm:block">
+              WBSEDCL <span className="text-cyan-400">TOOLS</span>
+            </span>
+          </Link>
         </div>
 
         {/* Desktop Nav */}

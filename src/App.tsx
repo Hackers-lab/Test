@@ -80,10 +80,25 @@ const Home = () => {
     <PageTransition>
       <div className="p-4 md:p-8 max-w-7xl mx-auto h-full flex flex-col">
         {/* Header Setup */}
-        <div className="py-12 text-center relative">
+        <div className="py-12 text-center relative flex flex-col items-center">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[300px] bg-cyan-500/10 rounded-full blur-[100px] -z-10 pointer-events-none"></div>
+          <motion.div 
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="w-24 h-24 mb-8 rounded-full bg-slate-900 border border-white/10 p-0 overflow-hidden shadow-[0_0_50px_rgba(6,182,212,0.2)]"
+          >
+            <img 
+              src="/logo.png" 
+              alt="WBSEDCL Logo" 
+              className="w-full h-full object-cover" 
+              referrerPolicy="no-referrer" 
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = "/logo.svg";
+              }}
+            />
+          </motion.div>
           <h1 className="text-5xl md:text-6xl font-black text-white mb-6 tracking-tight">
-            Welcome to Wbsedcl <span className="text-cyan-400">tools</span>
+            Welcome to <span className="text-cyan-400">WBSEDCL TOOLS</span>
           </h1>
           <p className="text-xl text-slate-400 max-w-2xl mx-auto">
             Discover our collection of advanced tools, estimators, and automation systems tailored for precision.
