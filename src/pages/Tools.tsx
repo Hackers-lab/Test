@@ -1,3 +1,4 @@
+import { fetchGithubApi } from '../lib/github';
 import { useState, useEffect } from 'react';
 import { Download, PlayCircle, BookOpen, AlertCircle } from 'lucide-react';
 import { motion } from 'motion/react';
@@ -35,11 +36,7 @@ export function Tools() {
         
         let releaseBody = '';
         try {
-          let relRes = await fetch(`/api/github/repos/${repoName}/releases/latest`);
-          
-          if (relRes.status === 404 || relRes.status === 500) {
-             relRes = await fetch(`https://api.github.com/repos/${repoName}/releases/latest`);
-          }
+          let relRes = await fetchGithubApi(`repos/${repoName}/releases/latest`);
 
           if (relRes.ok) {
              const relData = await relRes.json();
@@ -47,10 +44,7 @@ export function Tools() {
              releaseBody = relData.body || '';
           } else {
              // Fallback to all releases
-             let listRes = await fetch(`/api/github/repos/${repoName}/releases`);
-             if (listRes.status === 404 || listRes.status === 500) {
-                listRes = await fetch(`https://api.github.com/repos/${repoName}/releases`);
-             }
+             let listRes = await fetchGithubApi(`repos/${repoName}/releases`);
              
              if (listRes.ok) {
                 const listData = await listRes.json();
@@ -65,7 +59,7 @@ export function Tools() {
              }
           }
         } catch (e) {
-          console.error(`Fetch error for ${repoName} releases:`, e);
+          // Keep silent failure when completely unreachable
           setRelease(null);
         }
 

@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import { Layout } from "./components/Layout";
 import { Download, Monitor, Plus, BookOpen } from "lucide-react";
+import { fetchGithubApi } from "./lib/github";
 import { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { Forum } from "./pages/Forum";
@@ -34,23 +35,15 @@ const AppFeatureCard = ({ repoName, title, description, to }: { repoName: string
   useEffect(() => {
     const fetchReleaseInfo = async () => {
       try {
-        let res = await fetch(`/api/github/repos/${repoName}/releases/latest`);
+        let res = await fetchGithubApi(`repos/${repoName}/releases/latest`);
         let data = null;
-
-        if (res.status === 404) {
-          // Proxy might not exist (e.g. static hosting) or release not found, try direct API or list
-          res = await fetch(`https://api.github.com/repos/${repoName}/releases/latest`);
-        }
 
         if (res.ok) {
           data = await res.json();
           setRelease(data);
         } else {
           // Fallback to list of all releases if latest isn't found
-          let listRes = await fetch(`/api/github/repos/${repoName}/releases`);
-          if (listRes.status === 404 || listRes.status === 403) {
-            listRes = await fetch(`https://api.github.com/repos/${repoName}/releases`);
-          }
+          let listRes = await fetchGithubApi(`repos/${repoName}/releases`);
           
           if (listRes.ok) {
             const listData = await listRes.json();
@@ -60,7 +53,7 @@ const AppFeatureCard = ({ repoName, title, description, to }: { repoName: string
           }
         }
       } catch (e) {
-        console.warn(`Failed to fetch releases for ${repoName}`, e);
+        // Silently fail if completely unreachable
       }
     };
     fetchReleaseInfo();

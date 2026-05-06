@@ -1,3 +1,4 @@
+import { fetchGithubApi } from '../lib/github';
 import { useState, useEffect } from 'react';
 import { Download, AlertCircle, FileBox, ChevronDown, ChevronUp, History } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -149,22 +150,16 @@ export function Downloads() {
         const results = await Promise.all(
           apps.map(async (app) => {
             try {
-              let res = await fetch(`/api/github/repos/${app.repo}/releases`);
-              
-              if (res.status === 404 || res.status === 403 || res.status === 500) {
-                 res = await fetch(`https://api.github.com/repos/${app.repo}/releases`);
-              }
+              let res = await fetchGithubApi(`repos/${app.repo}/releases`);
 
               if (res.ok) {
                 const releases = await res.json();
                 return { ...app, releases: Array.isArray(releases) ? releases.slice(0, 10) : [] }; 
               }
               
-              console.warn(`Could not fetch releases for ${app.repo}. Status: ${res.status}`);
-              
+              // Only warn if the request completely responded with an error, ignore silently otherwise
               return { ...app, releases: [] };
             } catch (e) {
-              console.error(`Fetch error for ${app.repo}:`, e);
               return { ...app, releases: [] };
             }
           })
