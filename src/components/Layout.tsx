@@ -1,4 +1,3 @@
-import logo from "../assets/logo.png";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { Menu, X, MessageSquare } from "lucide-react";
@@ -84,7 +83,7 @@ export function Layout() {
           <Link to="/" className="flex items-center gap-3 group">
             <div className="w-10 h-10 rounded-full bg-slate-900 border border-white/10 p-1 overflow-hidden group-hover:border-cyan-500/50 transition-all shadow-[0_0_20px_rgba(6,182,212,0.15)] flex items-center justify-center">
               <img 
-                src={logo} 
+                src="/logo.png" 
                 alt="WBSEDCL Tools Logo" 
                 className="w-full h-full object-contain"
                 referrerPolicy="no-referrer"
