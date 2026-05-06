@@ -3,6 +3,7 @@ import { Download, AlertCircle, FileBox, ChevronDown, ChevronUp, History } from 
 import { motion, AnimatePresence } from 'motion/react';
 import { PageTransition } from '../App';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface Asset {
   name: string;
@@ -26,7 +27,7 @@ interface AppReleases {
   releases: Release[];
 }
 
-const ReleaseItem = ({ release, isLatest }: { release: Release, isLatest: boolean }) => {
+const ReleaseItem = ({ release, isLatest, repo }: { release: Release, isLatest: boolean, repo: string }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -86,7 +87,17 @@ const ReleaseItem = ({ release, isLatest }: { release: Release, isLatest: boolea
                   <div className="prose prose-invert prose-sm max-w-none prose-cyan 
                     prose-p:text-slate-400 prose-headings:text-white prose-li:text-slate-400
                     overflow-x-auto pb-4">
-                    <ReactMarkdown>{release.body || "_No detailed release notes provided._"}</ReactMarkdown>
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      urlTransform={(uri) => {
+                        if (!uri.startsWith('http') && !uri.startsWith('mailto:') && !uri.startsWith('#')) {
+                          return `https://raw.githubusercontent.com/${repo}/${release.tag_name}/${uri.replace(/^\//, '')}`;
+                        }
+                        return uri;
+                      }}
+                    >
+                      {release.body || "_No detailed release notes provided._"}
+                    </ReactMarkdown>
                   </div>
                 </div>
                 
@@ -200,7 +211,7 @@ export function Downloads() {
                 ) : (
                   <div className="flex flex-col">
                     {app.releases.map((release, rIdx) => (
-                       <ReleaseItem key={release.id} release={release} isLatest={rIdx === 0} />
+                       <ReleaseItem key={release.id} release={release} isLatest={rIdx === 0} repo={app.repo} />
                     ))}
                   </div>
                 )}

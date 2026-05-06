@@ -177,20 +177,30 @@ export function Tools() {
 
             {/* README Content */}
             {readme && (
-               <div className="bg-[#0f172a] border border-white/5 rounded-3xl p-6 md:p-10">
-                 <h3 className="text-white font-bold mb-6 flex items-center gap-2 pb-4 border-b border-white/5">
-                   <BookOpen className="w-4 h-4 text-cyan-500" />
-                   Documentation
-                 </h3>
-                 <div className="markdown-body prose prose-invert prose-cyan max-w-none 
+                <div className="bg-[#0f172a] border border-white/5 rounded-3xl p-6 md:p-10">
+                  <h3 className="text-white font-bold mb-6 flex items-center gap-2 pb-4 border-b border-white/5">
+                    <BookOpen className="w-4 h-4 text-cyan-500" />
+                    Documentation
+                  </h3>
+                  <div className="markdown-body prose prose-invert prose-cyan max-w-none 
                     prose-headings:font-bold prose-headings:tracking-tight 
                     prose-a:text-cyan-400 prose-a:no-underline hover:prose-a:underline
                     prose-pre:bg-slate-900 prose-pre:border prose-pre:border-white/10
                     prose-img:rounded-xl prose-img:border prose-img:border-white/10"
-                 >
-                   <Markdown remarkPlugins={[remarkGfm]}>{readme}</Markdown>
-                 </div>
-               </div>
+                  >
+                    <Markdown 
+                      remarkPlugins={[remarkGfm]}
+                      urlTransform={(uri) => {
+                        if (!uri.startsWith('http') && !uri.startsWith('mailto:') && !uri.startsWith('#')) {
+                          return `https://raw.githubusercontent.com/Hackers-lab/${selectedRepo}/main/${uri.replace(/^\//, '')}`;
+                        }
+                        return uri;
+                      }}
+                    >
+                      {readme}
+                    </Markdown>
+                  </div>
+                </div>
             )}
             
           </motion.div>
