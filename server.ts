@@ -2,6 +2,10 @@ import express from "express";
 import { createServer as createViteServer } from "vite";
 import path from "path";
 import { fileURLToPath } from "url";
+import dotenv from "dotenv";
+
+// Load environment variables from .env file if present
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -26,25 +30,20 @@ async function startServer() {
     }
 
     try {
-      console.log(`Proxying request to GitHub: ${githubPath}`);
       const headers: Record<string, string> = {
         'Accept': 'application/vnd.github.v3+json',
         'User-Agent': 'WBSEDCL-Tools-App'
       };
 
       if (process.env.GITHUB_TOKEN) {
-        const token = process.env.GITHUB_TOKEN;
-        console.log(`Using GITHUB_TOKEN starting with: ${token.substring(0, 4)}...`);
-        headers['Authorization'] = `token ${token}`;
-      } else {
-        console.warn("No GITHUB_TOKEN found in environment variables");
+        headers['Authorization'] = `token ${process.env.GITHUB_TOKEN.trim()}`;
       }
 
+      console.log(`[GitHub Proxy] Fetching: ${githubPath} (Token: ${!!process.env.GITHUB_TOKEN})`);
       const response = await fetch(`https://api.github.com/${githubPath}`, { headers });
       
       if (!response.ok) {
-        console.error(`GitHub API responded with ${response.status} for ${githubPath}`);
-        // If it's a 404 for /releases/latest, it might mean the repo just has no releases
+        console.error(`[GitHub Proxy] Error ${response.status} for ${githubPath}`);
         return res.status(response.status).json({ 
           error: `GitHub error: ${response.status}`,
           path: githubPath 
@@ -55,9 +54,19 @@ async function startServer() {
       githubCache.set(cacheKey, { data, timestamp: now });
       res.json(data);
     } catch (error) {
-      console.error(`Error proxying to GitHub:`, error);
+      console.error(`[GitHub Proxy] Critical Error:`, error);
       res.status(500).json({ error: 'Failed to fetch from GitHub' });
     }
+  });
+
+  // Diagnostic endpoint
+  app.get("/api/diag", (req, res) => {
+    res.json({
+      env: process.env.NODE_ENV,
+      hasToken: !!process.env.GITHUB_TOKEN,
+      tokenPrefix: process.env.GITHUB_TOKEN ? process.env.GITHUB_TOKEN.substring(0, 4) : null,
+      timestamp: new Date().toISOString()
+    });
   });
 
   // Vite middleware for development
@@ -80,6 +89,19 @@ async function startServer() {
         console.log(`[Prod] Request: ${req.method} ${req.path}`);
       }
       next();
+    });
+
+    // Serve logo explicitly to avoid any static serving issues
+    app.get("/logo.png", (req, res) => {
+      const logoPath = path.join(process.cwd(), "public", "logo.png");
+      res.sendFile(logoPath, (err) => {
+        if (err) {
+          // Fallback to dist if public fails
+          res.sendFile(path.join(process.cwd(), "dist", "logo.png"), (err2) => {
+             if (err2) res.status(404).send("Logo not found");
+          });
+        }
+      });
     });
 
     // Serve static files first

@@ -32,21 +32,28 @@ const AppFeatureCard = ({ repoName, title, description, to }: { repoName: string
   const [release, setRelease] = useState<Release | null>(null);
 
   useEffect(() => {
-    fetch(`/api/github/repos/${repoName}/releases/latest`)
-      .then(async (res) => {
-        if (res.ok) return res.json();
-        // Ignore 404 as it just means no releases exist yet
-        if (res.status !== 404) {
-          console.warn(`GitHub API status for ${repoName}: ${res.status}`);
-        }
-        return null;
-      })
-      .then(data => {
-        if (data && !data.message) {
+    const fetchReleaseInfo = async () => {
+      try {
+        // Try latest first
+        const res = await fetch(`/api/github/repos/${repoName}/releases/latest`);
+        if (res.ok) {
+          const data = await res.json();
           setRelease(data);
+        } else if (res.status === 404) {
+          // Fallback to list of all releases if latest isn't found
+          const listRes = await fetch(`/api/github/repos/${repoName}/releases`);
+          if (listRes.ok) {
+            const listData = await listRes.json();
+            if (Array.isArray(listData) && listData.length > 0) {
+              setRelease(listData[0]);
+            }
+          }
         }
-      })
-      .catch(() => {});
+      } catch (e) {
+        console.warn(`Failed to fetch releases for ${repoName}`, e);
+      }
+    };
+    fetchReleaseInfo();
   }, [repoName]);
 
   return (

@@ -40,10 +40,22 @@ export function Tools() {
              const relData = await relRes.json();
              setRelease(relData);
              releaseBody = relData.body || '';
-          } else {
-             if (relRes.status !== 404) {
-               console.error(`Proxy API error for ${repoName} releases: ${relRes.status}`);
+          } else if (relRes.status === 404) {
+             // Fallback to all releases
+             const listRes = await fetch(`/api/github/repos/${repoName}/releases`);
+             if (listRes.ok) {
+                const listData = await listRes.json();
+                if (Array.isArray(listData) && listData.length > 0) {
+                  setRelease(listData[0]);
+                  releaseBody = listData[0].body || '';
+                } else {
+                  setRelease(null);
+                }
+             } else {
+                setRelease(null);
              }
+          } else {
+             console.error(`Proxy API error for ${repoName} releases: ${relRes.status}`);
              setRelease(null);
           }
         } catch (e) {
