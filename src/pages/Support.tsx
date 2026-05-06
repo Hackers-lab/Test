@@ -44,6 +44,19 @@ export function Support() {
                </Link>
              </div>
 
+             <div className="bg-slate-900/60 border border-white/5 rounded-3xl p-8 hover:border-green-500/30 transition-all group">
+               <div className="w-12 h-12 bg-green-500/20 text-green-400 rounded-2xl flex items-center justify-center mb-6">
+                 <MessageSquare className="w-6 h-6" />
+               </div>
+               <h2 className="text-2xl font-bold text-white mb-2">WhatsApp Support</h2>
+               <p className="text-slate-400 mb-6">
+                 Join our WhatsApp community for real-time updates, quick assistance, and community discussions.
+               </p>
+               <a href="https://chat.whatsapp.com/LZKLg40n8FxCLdnAIO9HGE" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-green-400 font-bold hover:text-green-300 transition-colors">
+                 Join WhatsApp Group <ExternalLink className="w-4 h-4" />
+               </a>
+             </div>
+
              <div className="bg-slate-900/60 border border-white/5 rounded-3xl p-8 hover:border-cyan-500/30 transition-all group">
                <div className="w-12 h-12 bg-purple-500/20 text-purple-400 rounded-2xl flex items-center justify-center mb-6">
                  <Mail className="w-6 h-6" />
