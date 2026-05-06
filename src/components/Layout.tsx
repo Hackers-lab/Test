@@ -1,7 +1,7 @@
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
-import { Menu, X } from "lucide-react";
-import { useState } from "react";
+import { Menu, X, MessageSquare } from "lucide-react";
+import { useState, useEffect } from "react";
 import { cn } from "../lib/utils";
 
 const navItems = [
@@ -15,10 +15,68 @@ const navItems = [
 
 export function Layout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showWhatsApp, setShowWhatsApp] = useState(false);
   const location = useLocation();
+
+  useEffect(() => {
+    const hasInteracted = localStorage.getItem("whatsapp_joined");
+    if (!hasInteracted) {
+      const timer = setTimeout(() => setShowWhatsApp(true), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  const handleWhatsAppClick = () => {
+    localStorage.setItem("whatsapp_joined", "true");
+    setShowWhatsApp(false);
+  };
 
   return (
     <div className="min-h-screen bg-[#02040a] text-slate-200 font-sans selection:bg-cyan-500 selection:text-white flex flex-col overflow-x-hidden">
+      {/* WhatsApp Popup */}
+      <AnimatePresence>
+        {showWhatsApp && (
+          <motion.div
+            initial={{ opacity: 0, y: 100, scale: 0.8 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.5 }}
+            className="fixed bottom-6 right-6 z-[100] max-w-[300px] w-full"
+          >
+            <div className="bg-[#121b22] border border-green-500/30 rounded-2xl p-5 shadow-[0_20px_50px_rgba(34,197,94,0.15)] relative overflow-hidden group">
+              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button 
+                  onClick={() => setShowWhatsApp(false)}
+                  className="text-slate-500 hover:text-white"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-green-500/20 text-green-400 flex items-center justify-center shrink-0">
+                  <MessageSquare className="w-6 h-6" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-sm font-bold text-white mb-1">Official Support</h4>
+                  <p className="text-[11px] text-slate-400 leading-relaxed mb-4">
+                    Join our WhatsApp community for real-time updates and direct tool support.
+                  </p>
+                  <a 
+                    href="https://chat.whatsapp.com/LZKLg40n8FxCLdnAIO9HGE"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={handleWhatsAppClick}
+                    className="inline-flex items-center justify-center w-full py-2.5 rounded-xl bg-green-600 hover:bg-green-500 text-white text-[11px] font-black uppercase tracking-widest transition-all shadow-lg"
+                  >
+                    Join the Group
+                  </a>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Navigation */}
       <nav className="h-16 px-4 md:px-8 flex items-center justify-between border-b border-white/10 bg-slate-900/50 backdrop-blur-xl shrink-0 sticky top-0 z-50">
         <div className="flex items-center gap-3">
