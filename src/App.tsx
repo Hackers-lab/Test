@@ -34,14 +34,24 @@ const AppFeatureCard = ({ repoName, title, description, to }: { repoName: string
   useEffect(() => {
     const fetchReleaseInfo = async () => {
       try {
-        // Try latest first
-        const res = await fetch(`/api/github/repos/${repoName}/releases/latest`);
+        let res = await fetch(`/api/github/repos/${repoName}/releases/latest`);
+        let data = null;
+
+        if (res.status === 404) {
+          // Proxy might not exist (e.g. static hosting) or release not found, try direct API or list
+          res = await fetch(`https://api.github.com/repos/${repoName}/releases/latest`);
+        }
+
         if (res.ok) {
-          const data = await res.json();
+          data = await res.json();
           setRelease(data);
-        } else if (res.status === 404) {
+        } else {
           // Fallback to list of all releases if latest isn't found
-          const listRes = await fetch(`/api/github/repos/${repoName}/releases`);
+          let listRes = await fetch(`/api/github/repos/${repoName}/releases`);
+          if (listRes.status === 404 || listRes.status === 403) {
+            listRes = await fetch(`https://api.github.com/repos/${repoName}/releases`);
+          }
+          
           if (listRes.ok) {
             const listData = await listRes.json();
             if (Array.isArray(listData) && listData.length > 0) {

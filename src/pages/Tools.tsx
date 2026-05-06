@@ -35,14 +35,23 @@ export function Tools() {
         
         let releaseBody = '';
         try {
-          const relRes = await fetch(`/api/github/repos/${repoName}/releases/latest`);
+          let relRes = await fetch(`/api/github/repos/${repoName}/releases/latest`);
+          
+          if (relRes.status === 404 || relRes.status === 500) {
+             relRes = await fetch(`https://api.github.com/repos/${repoName}/releases/latest`);
+          }
+
           if (relRes.ok) {
              const relData = await relRes.json();
              setRelease(relData);
              releaseBody = relData.body || '';
-          } else if (relRes.status === 404) {
+          } else {
              // Fallback to all releases
-             const listRes = await fetch(`/api/github/repos/${repoName}/releases`);
+             let listRes = await fetch(`/api/github/repos/${repoName}/releases`);
+             if (listRes.status === 404 || listRes.status === 500) {
+                listRes = await fetch(`https://api.github.com/repos/${repoName}/releases`);
+             }
+             
              if (listRes.ok) {
                 const listData = await listRes.json();
                 if (Array.isArray(listData) && listData.length > 0) {
@@ -54,9 +63,6 @@ export function Tools() {
              } else {
                 setRelease(null);
              }
-          } else {
-             console.error(`Proxy API error for ${repoName} releases: ${relRes.status}`);
-             setRelease(null);
           }
         } catch (e) {
           console.error(`Fetch error for ${repoName} releases:`, e);

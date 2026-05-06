@@ -149,16 +149,18 @@ export function Downloads() {
         const results = await Promise.all(
           apps.map(async (app) => {
             try {
-              const res = await fetch(`/api/github/repos/${app.repo}/releases`);
+              let res = await fetch(`/api/github/repos/${app.repo}/releases`);
+              
+              if (res.status === 404 || res.status === 403 || res.status === 500) {
+                 res = await fetch(`https://api.github.com/repos/${app.repo}/releases`);
+              }
+
               if (res.ok) {
                 const releases = await res.json();
                 return { ...app, releases: Array.isArray(releases) ? releases.slice(0, 10) : [] }; 
               }
               
-              if (res.status === 500 || res.status === 403) {
-                  // The server now handles the specific errors, we just show generic message if multiple fail
-                  console.warn(`Could not fetch releases for ${app.repo}`);
-              }
+              console.warn(`Could not fetch releases for ${app.repo}. Status: ${res.status}`);
               
               return { ...app, releases: [] };
             } catch (e) {
