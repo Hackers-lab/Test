@@ -41,7 +41,9 @@ export function Tools() {
              setRelease(relData);
              releaseBody = relData.body || '';
           } else {
-             console.error(`Proxy API error for ${repoName} releases: ${relRes.status}`);
+             if (relRes.status !== 404) {
+               console.error(`Proxy API error for ${repoName} releases: ${relRes.status}`);
+             }
              setRelease(null);
           }
         } catch (e) {

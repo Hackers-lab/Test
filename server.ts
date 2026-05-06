@@ -26,20 +26,29 @@ async function startServer() {
     }
 
     try {
+      console.log(`Proxying request to GitHub: ${githubPath}`);
       const headers: Record<string, string> = {
         'Accept': 'application/vnd.github.v3+json',
         'User-Agent': 'WBSEDCL-Tools-App'
       };
 
       if (process.env.GITHUB_TOKEN) {
-        headers['Authorization'] = `token ${process.env.GITHUB_TOKEN}`;
+        const token = process.env.GITHUB_TOKEN;
+        console.log(`Using GITHUB_TOKEN starting with: ${token.substring(0, 4)}...`);
+        headers['Authorization'] = `token ${token}`;
+      } else {
+        console.warn("No GITHUB_TOKEN found in environment variables");
       }
 
       const response = await fetch(`https://api.github.com/${githubPath}`, { headers });
       
       if (!response.ok) {
-        // If GitHub returns an error, don't cache it but return it
-        return res.status(response.status).json({ error: `GitHub error: ${response.status}` });
+        console.error(`GitHub API responded with ${response.status} for ${githubPath}`);
+        // If it's a 404 for /releases/latest, it might mean the repo just has no releases
+        return res.status(response.status).json({ 
+          error: `GitHub error: ${response.status}`,
+          path: githubPath 
+        });
       }
 
       const data = await response.json();
@@ -65,6 +74,14 @@ async function startServer() {
     console.log("Starting server in production mode");
     const distPath = path.join(process.cwd(), "dist");
     
+    // Add logging for production requests to debug 404s
+    app.use((req, res, next) => {
+      if (!req.path.startsWith('/api')) {
+        console.log(`[Prod] Request: ${req.method} ${req.path}`);
+      }
+      next();
+    });
+
     // Serve static files first
     app.use(express.static(distPath));
 

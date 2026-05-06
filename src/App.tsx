@@ -35,7 +35,10 @@ const AppFeatureCard = ({ repoName, title, description, to }: { repoName: string
     fetch(`/api/github/repos/${repoName}/releases/latest`)
       .then(async (res) => {
         if (res.ok) return res.json();
-        console.error(`Local API error for ${repoName} releases: ${res.status}`);
+        // Ignore 404 as it just means no releases exist yet
+        if (res.status !== 404) {
+          console.warn(`GitHub API status for ${repoName}: ${res.status}`);
+        }
         return null;
       })
       .then(data => {
@@ -43,9 +46,7 @@ const AppFeatureCard = ({ repoName, title, description, to }: { repoName: string
           setRelease(data);
         }
       })
-      .catch((e) => {
-        console.error(`Fetch error for ${repoName} releases:`, e);
-      });
+      .catch(() => {});
   }, [repoName]);
 
   return (
