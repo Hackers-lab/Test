@@ -25,7 +25,7 @@ export function About() {
              <div>
                <h2 className="text-3xl font-bold text-white mb-4">Pramod</h2>
                <p className="text-slate-400 text-lg mb-6 leading-relaxed">
-                 Developer and creator of WBTools ecosystem. Specializing in highly efficient, reliable data estimators and rendering tools. Connect with me for custom solutions, new software ideas, or reporting issues.
+                 Developer and creator of the Wbsedcl tools ecosystem. Specializing in highly efficient, reliable data estimators and rendering tools. Connect with me for custom solutions, new software ideas, or reporting issues.
                </p>
                <div className="flex gap-4 flex-wrap">
                  <a href="mailto:pramod.theroxtar@gmail.com" className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 text-white font-medium hover:bg-slate-700 transition-colors">

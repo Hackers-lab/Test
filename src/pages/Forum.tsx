@@ -35,6 +35,16 @@ export function Forum() {
   const [newPostTitle, setNewPostTitle] = useState('');
   const [newPostContent, setNewPostContent] = useState('');
   const [expandedPost, setExpandedPost] = useState<string | null>(null);
+  const [authError, setAuthError] = useState<string | null>(null);
+
+  const handleSignIn = async () => {
+    setAuthError(null);
+    try {
+      await signInWithGoogle();
+    } catch (error) {
+      setAuthError('Authentication failed. Please check if popups are blocked.');
+    }
+  };
 
   useEffect(() => {
     const q = query(collection(db, 'posts'), orderBy('createdAt', 'desc'));
@@ -98,13 +108,16 @@ export function Forum() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-4xl font-extrabold text-white tracking-tight mb-2">Community Forum</h1>
-          <p className="text-slate-400">Join the discussion about WBTools and the integrated ecosystem.</p>
+          <p className="text-slate-400">Join the discussion about Wbsedcl tools and the integrated ecosystem.</p>
         </div>
         <div>
           {!user ? (
-            <button onClick={signInWithGoogle} className="flex items-center gap-2 bg-gradient-to-r from-cyan-600 to-blue-700 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg hover:opacity-90">
-              <LogIn className="w-4 h-4" /> Sign In via Google
-            </button>
+            <div className="flex flex-col items-end gap-2">
+              <button onClick={handleSignIn} className="flex items-center gap-2 bg-gradient-to-r from-cyan-600 to-blue-700 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg hover:opacity-90">
+                <LogIn className="w-4 h-4" /> Sign In via Google
+              </button>
+              {authError && <span className="text-[10px] text-red-400 font-medium">{authError}</span>}
+            </div>
           ) : (
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">

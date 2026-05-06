@@ -23,10 +23,10 @@ export function Layout() {
       <nav className="h-16 px-4 md:px-8 flex items-center justify-between border-b border-white/10 bg-slate-900/50 backdrop-blur-xl shrink-0 sticky top-0 z-50">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 shadow-[0_0_15px_rgba(6,182,212,0.5)] flex items-center justify-center">
-            <span className="font-black text-white text-xs">WB</span>
+            <span className="font-black text-white text-xs">WT</span>
           </div>
           <span className="text-xl font-bold tracking-tight text-white">
-            WB<span className="text-cyan-400">TOOLS</span>.co.in
+            Wbsedcl <span className="text-cyan-400">tools</span>
           </span>
         </div>
 
@@ -119,7 +119,7 @@ export function Layout() {
       {/* Footer */}
       <footer className="h-min md:h-12 border-t border-white/5 flex flex-col md:flex-row md:items-center justify-between px-8 bg-slate-950 py-4 md:py-0 shrink-0">
         <div className="text-[10px] text-slate-600 uppercase font-bold tracking-widest text-center md:text-left mb-2 md:mb-0">
-          © {new Date().getFullYear()} WBTOOLS INTEGRATED ECOSYSTEM
+          © {new Date().getFullYear()} WBSEDCL TOOLS INTEGRATED ECOSYSTEM
         </div>
         <div className="flex justify-center md:justify-end gap-4">
           <span className="text-[10px] text-slate-600 flex items-center gap-1">

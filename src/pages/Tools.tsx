@@ -124,7 +124,6 @@ export function Tools() {
               
               <h1 className="text-4xl font-black text-white mb-2 leading-tight">
                 {selectedRepo === 'spotimageviewer' ? 'Spot Image Viewer' : 'Estimator'}
-                {release && <span className="text-cyan-400 text-2xl align-top ml-3">{release.tag_name}</span>}
               </h1>
               
               {release ? (
@@ -136,13 +135,23 @@ export function Tools() {
                    ))}
                    <div className="flex gap-6 mt-4 sm:mt-0 justify-center w-full sm:w-auto px-4">
                      <div className="flex flex-col">
+                       <span className="text-[10px] text-slate-500 uppercase font-bold tracking-tighter">Version</span>
+                       <span className="text-cyan-400 font-mono text-sm">{release.tag_name}</span>
+                     </div>
+                     <div className="flex flex-col">
                        <span className="text-[10px] text-slate-500 uppercase font-bold tracking-tighter">Updated</span>
                        <span className="text-white font-mono text-sm">{new Date(release.published_at).toLocaleDateString()}</span>
                      </div>
                    </div>
                  </div>
               ) : (
-                 <p className="mt-4 text-slate-500 border border-dashed border-white/10 rounded-xl p-4 inline-block">No official binary releases found for this distribution.</p>
+                 <div className="mt-4 p-6 border border-dashed border-white/10 rounded-2xl bg-black/20 flex flex-col gap-2">
+                   <p className="text-slate-400 font-medium">No official binaries found for this tool.</p>
+                   <p className="text-xs text-slate-600">
+                     This may happen if the repository is private or no public releases have been tagged yet. 
+                     Please check back later or contact support if you believe this is an error.
+                   </p>
+                 </div>
               )}
             </div>
 

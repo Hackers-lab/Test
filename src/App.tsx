@@ -54,7 +54,6 @@ const AppFeatureCard = ({ repoName, title, description, to }: { repoName: string
       
       <h2 className="text-3xl font-extrabold text-white mb-3">
         {title}
-        {release && <span className="text-cyan-400 text-xl align-top ml-2">{release.tag_name}</span>}
       </h2>
       
       <p className="text-slate-400 text-lg mb-8 max-w-md flex-1">
@@ -84,7 +83,7 @@ const Home = () => {
         <div className="py-12 text-center relative">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[300px] bg-cyan-500/10 rounded-full blur-[100px] -z-10 pointer-events-none"></div>
           <h1 className="text-5xl md:text-6xl font-black text-white mb-6 tracking-tight">
-            Welcome to WB<span className="text-cyan-400">TOOLS</span>
+            Welcome to Wbsedcl <span className="text-cyan-400">tools</span>
           </h1>
           <p className="text-xl text-slate-400 max-w-2xl mx-auto">
             Discover our collection of advanced tools, estimators, and automation systems tailored for precision.
@@ -105,14 +104,6 @@ const Home = () => {
             description="A robust estimation utility to calculate, manage, and overview project dimensions."
             to="/tools?app=estimator"
           />
-        </div>
-
-        {/* Deployment Info Section (from the old sidebar) */}
-        <div className="bg-[#0f172a] border border-white/5 rounded-3xl p-8 mb-8 max-w-3xl mx-auto w-full text-center">
-          <h3 className="text-white font-bold mb-4 text-xl">About Updates</h3>
-          <p className="text-sm text-slate-400 leading-relaxed max-w-lg mx-auto">
-            These tools are dynamically synced directly from our production systems. Downloads, releases, and documentation are pulled automatically for the latest features and patches.
-          </p>
         </div>
       </div>
     </PageTransition>
