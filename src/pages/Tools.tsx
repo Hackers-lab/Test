@@ -34,13 +34,19 @@ export function Tools() {
         const repoName = `Hackers-lab/${selectedRepo}`;
         
         let releaseBody = '';
-        const relRes = await fetch(`https://api.github.com/repos/${repoName}/releases/latest`);
-        if (relRes.ok) {
-           const relData = await relRes.json();
-           setRelease(relData);
-           releaseBody = relData.body || '';
-        } else {
-           setRelease(null);
+        try {
+          const relRes = await fetch(`/api/github/repos/${repoName}/releases/latest`);
+          if (relRes.ok) {
+             const relData = await relRes.json();
+             setRelease(relData);
+             releaseBody = relData.body || '';
+          } else {
+             console.error(`Proxy API error for ${repoName} releases: ${relRes.status}`);
+             setRelease(null);
+          }
+        } catch (e) {
+          console.error(`Fetch error for ${repoName} releases:`, e);
+          setRelease(null);
         }
 
         const readmeRes = await fetch(`https://raw.githubusercontent.com/${repoName}/main/README.md`);

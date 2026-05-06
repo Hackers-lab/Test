@@ -32,14 +32,20 @@ const AppFeatureCard = ({ repoName, title, description, to }: { repoName: string
   const [release, setRelease] = useState<Release | null>(null);
 
   useEffect(() => {
-    fetch(`https://api.github.com/repos/${repoName}/releases/latest`)
-      .then(res => res.ok ? res.json() : null)
+    fetch(`/api/github/repos/${repoName}/releases/latest`)
+      .then(async (res) => {
+        if (res.ok) return res.json();
+        console.error(`Local API error for ${repoName} releases: ${res.status}`);
+        return null;
+      })
       .then(data => {
         if (data && !data.message) {
           setRelease(data);
         }
       })
-      .catch(() => {});
+      .catch((e) => {
+        console.error(`Fetch error for ${repoName} releases:`, e);
+      });
   }, [repoName]);
 
   return (
@@ -80,33 +86,40 @@ const Home = () => {
     <PageTransition>
       <div className="p-4 md:p-8 max-w-7xl mx-auto h-full flex flex-col">
         {/* Header Setup */}
-        <div className="py-8 md:py-16 text-center relative flex flex-col items-center">
+        <div className="py-6 md:py-10 text-center relative flex flex-col items-center">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[200px] bg-cyan-500/5 rounded-full blur-[100px] -z-10 pointer-events-none"></div>
           
-          <div className="flex flex-row items-center justify-center gap-4 md:gap-6 mb-2">
+          <div className="flex flex-row items-center justify-center gap-4 md:gap-6">
             <motion.div 
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              className="w-16 h-16 md:w-24 md:h-24 rounded-full bg-slate-900 border border-white/10 p-1 overflow-hidden shadow-[0_0_30px_rgba(6,182,212,0.2)] shrink-0"
+              className="w-14 h-14 md:w-20 md:h-20 rounded-full bg-slate-900 border border-white/10 p-1 overflow-hidden shadow-[0_0_30px_rgba(6,182,212,0.2)] shrink-0 flex items-center justify-center"
             >
               <img 
                 src="/logo.png" 
                 alt="WBSEDCL Logo" 
                 className="w-full h-full object-contain" 
                 referrerPolicy="no-referrer" 
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                  const parent = (e.target as HTMLImageElement).parentElement;
+                  if (parent) {
+                    parent.innerHTML = '<span class="text-xl font-black text-cyan-500">WT</span>';
+                  }
+                }}
               />
             </motion.div>
             <div className="flex flex-col items-start text-left">
               <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-white tracking-tighter leading-none">
                 WBSEDCL <span className="text-cyan-400">TOOLS</span>
               </h1>
-              <p className="text-sm md:text-lg text-slate-400 font-medium mt-1">Advanced Utility Solutions</p>
+              <p className="text-xs md:text-base text-slate-400 font-medium mt-0.5">Advanced Utility Solutions</p>
             </div>
           </div>
         </div>
 
         {/* Featured Apps Showcase */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-4 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2 mb-10">
           <AppFeatureCard 
             repoName="Hackers-lab/spotimageviewer"
             title="Spot Image Viewer"
