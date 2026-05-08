@@ -1,8 +1,11 @@
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
-import { Menu, X, MessageSquare } from "lucide-react";
+import { Menu, X, MessageSquare, Settings } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "../lib/utils";
+import logo from "../assets/logo.png";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "../lib/firebase";
 
 const navItems = [
   { name: "Home", path: "/" },
@@ -16,6 +19,7 @@ const navItems = [
 export function Layout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showWhatsApp, setShowWhatsApp] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const location = useLocation();
 
   useEffect(() => {
@@ -24,6 +28,12 @@ export function Layout() {
       const timer = setTimeout(() => setShowWhatsApp(true), 2000);
       return () => clearTimeout(timer);
     }
+  }, []);
+
+  useEffect(() => {
+    return onAuthStateChanged(auth, (user) => {
+      setUserEmail(user?.email || null);
+    });
   }, []);
 
   const handleWhatsAppClick = () => {
@@ -83,7 +93,7 @@ export function Layout() {
           <Link to="/" className="flex items-center gap-3 group">
             <div className="w-10 h-10 rounded-full bg-slate-900 border border-white/10 p-1 overflow-hidden group-hover:border-cyan-500/50 transition-all shadow-[0_0_20px_rgba(6,182,212,0.15)] flex items-center justify-center">
               <img 
-                src="/logo.png" 
+                src={logo} 
                 alt="WBSEDCL Tools Logo" 
                 className="w-full h-full object-contain"
                 referrerPolicy="no-referrer"
@@ -139,6 +149,25 @@ export function Layout() {
               </Link>
             );
           })}
+          
+          {userEmail === "pramod.theroxtar@gmail.com" && (
+            <Link
+              to="/settings"
+              className={cn(
+                "relative text-sm font-bold flex items-center gap-1 transition-colors",
+                location.pathname === "/settings" ? "text-cyan-400" : "text-slate-400 hover:text-cyan-400"
+              )}
+            >
+              <Settings className="w-4 h-4" /> Config
+              {location.pathname === "/settings" && (
+                <motion.div
+                  layoutId="navbar-indicator"
+                  className="absolute -bottom-[22px] left-0 h-[2px] w-full bg-cyan-500"
+                  transition={{ type: "spring", bounce: 0.25, duration: 0.5 }}
+                />
+              )}
+            </Link>
+          )}
         </div>
 
         {/* Mobile menu button */}
@@ -178,6 +207,18 @@ export function Layout() {
                   </Link>
                 );
               })}
+              {userEmail === "pramod.theroxtar@gmail.com" && (
+                  <Link
+                    to="/settings"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={cn(
+                      "text-sm font-bold flex items-center gap-2",
+                      location.pathname === "/settings" ? "text-cyan-400" : "text-slate-400 hover:text-cyan-400"
+                    )}
+                  >
+                    <Settings className="w-4 h-4" /> Config
+                  </Link>
+              )}
             </div>
           </motion.div>
         )}

@@ -1,10 +1,12 @@
 import { fetchGithubApi } from '../lib/github';
 import { useState, useEffect } from 'react';
-import { Download, AlertCircle, FileBox, ChevronDown, ChevronUp, History } from 'lucide-react';
+import { Download, AlertCircle, FileBox, ChevronDown, ChevronUp, History, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { PageTransition } from '../App';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { collection, query, getDocs } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 
 interface Asset {
   name: string;
@@ -142,10 +144,21 @@ export function Downloads() {
     async function fetchAllReleases() {
       setLoading(true);
       try {
-        const apps = [
-          { title: "Spot Image Viewer", repo: "Hackers-lab/spotimageviewer" },
-          { title: "Estimator", repo: "Hackers-lab/estimator" }
-        ];
+        const q = query(collection(db, 'repositories'));
+        const qs = await getDocs(q);
+        const apps: { title: string, repo: string }[] = [];
+        qs.forEach(doc => {
+          const d = doc.data();
+          apps.push({ title: d.title, repo: d.repoName });
+        });
+
+        // Fallback if empty just to be safe
+        if (apps.length === 0) {
+          apps.push(
+            { title: "Spot Image Viewer", repo: "Hackers-lab/spotimageviewer" },
+            { title: "Estimator", repo: "Hackers-lab/estimator" }
+          );
+        }
 
         const results = await Promise.all(
           apps.map(async (app) => {

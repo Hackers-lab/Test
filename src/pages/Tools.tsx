@@ -1,10 +1,12 @@
 import { fetchGithubApi } from '../lib/github';
 import { useState, useEffect } from 'react';
-import { Download, PlayCircle, BookOpen, AlertCircle } from 'lucide-react';
+import { Download, PlayCircle, BookOpen, AlertCircle, Loader2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { collection, query, onSnapshot } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 
 interface Release {
   name: string;
@@ -16,9 +18,13 @@ interface Release {
 
 export function Tools() {
   const [searchParams] = useSearchParams();
-  const initApp = searchParams.get('app') === 'estimator' ? 'estimator' : 'spotimageviewer';
+  const navigate = useNavigate();
+  const [repos, setRepos] = useState<any[]>([]);
+  const [reposLoading, setReposLoading] = useState(true);
   
-  const [selectedRepo, setSelectedRepo] = useState<'spotimageviewer' | 'estimator'>(initApp);
+  const initApp = searchParams.get('app') || '';
+  const [selectedRepoSlug, setSelectedRepoSlug] = useState<string>(initApp);
+
   const [release, setRelease] = useState<Release | null>(null);
   const [readme, setReadme] = useState<string>('');
   const [readmeBaseUrl, setReadmeBaseUrl] = useState<string>('');
@@ -27,13 +33,58 @@ export function Tools() {
   const [ytLink, setYtLink] = useState<string | null>(null);
 
   useEffect(() => {
+    const q = query(collection(db, 'repositories'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      let sorted: any[] = [];
+      if (snapshot.empty) {
+        sorted = [
+          {
+            id: 'hackers-lab_spotimageviewer',
+            repoName: "Hackers-lab/spotimageviewer",
+            title: "Spot Image Viewer"
+          },
+          {
+            id: 'hackers-lab_estimator',
+            repoName: "Hackers-lab/estimator",
+            title: "Estimator"
+          }
+        ];
+      } else {
+        const results: any[] = [];
+        snapshot.forEach(doc => {
+          results.push({ id: doc.id, ...doc.data() });
+        });
+        sorted = results.sort((a, b) => a.createdAt - b.createdAt);
+      }
+      
+      setRepos(sorted);
+      setReposLoading(false);
+      
+      if (!selectedRepoSlug && sorted.length > 0) {
+        setSelectedRepoSlug(sorted[0].repoName);
+      } else if (selectedRepoSlug && sorted.length > 0) {
+        // Find matching repo Name or partial match
+        const matching = sorted.find(r => r.repoName === selectedRepoSlug || r.repoName.endsWith(`/${selectedRepoSlug}`));
+        if (matching) {
+          setSelectedRepoSlug(matching.repoName);
+        } else {
+          setSelectedRepoSlug(sorted[0].repoName);
+        }
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
     async function fetchData() {
+      if (!selectedRepoSlug || !selectedRepoSlug.includes('/')) return;
+      
       setLoading(true);
       setError('');
       setYtLink(null);
       
       try {
-        const repoName = `Hackers-lab/${selectedRepo}`;
+        const repoName = selectedRepoSlug;
         
         let releaseBody = '';
         try {
@@ -103,7 +154,7 @@ export function Tools() {
       }
     }
     fetchData();
-  }, [selectedRepo]);
+  }, [selectedRepoSlug]);
 
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 items-start h-full pb-20">
@@ -112,20 +163,26 @@ export function Tools() {
       <aside className="col-span-1 lg:col-span-3 flex flex-col gap-4">
         <div className="bg-slate-900/60 border border-white/5 rounded-3xl p-6 shadow-xl">
            <h3 className="text-white font-bold mb-4 px-2 uppercase tracking-tight text-xs text-slate-500">Available Tools</h3>
-           <div className="flex flex-col gap-2">
-             <button 
-                onClick={() => setSelectedRepo('spotimageviewer')}
-                className={`text-left px-4 py-3 rounded-xl text-sm font-bold transition-all ${selectedRepo === 'spotimageviewer' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'text-slate-400 hover:bg-slate-800 hover:text-white border border-transparent'}`}
-             >
-                Spot Image Viewer
-             </button>
-             <button 
-                onClick={() => setSelectedRepo('estimator')}
-                className={`text-left px-4 py-3 rounded-xl text-sm font-bold transition-all ${selectedRepo === 'estimator' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'text-slate-400 hover:bg-slate-800 hover:text-white border border-transparent'}`}
-             >
-                Estimator
-             </button>
-           </div>
+           {reposLoading ? (
+             <div className="flex justify-center p-4">
+               <Loader2 className="w-6 h-6 text-cyan-500 animate-spin" />
+             </div>
+           ) : (
+             <div className="flex flex-col gap-2">
+               {repos.map(repo => (
+                 <button 
+                    key={repo.id}
+                    onClick={() => {
+                        setSelectedRepoSlug(repo.repoName);
+                        navigate(`/tools?app=${repo.repoName.split('/')[1]}`, { replace: true });
+                    }}
+                    className={`text-left px-4 py-3 rounded-xl text-sm font-bold transition-all ${selectedRepoSlug === repo.repoName ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'text-slate-400 hover:bg-slate-800 hover:text-white border border-transparent'}`}
+                 >
+                    {repo.title}
+                 </button>
+               ))}
+             </div>
+           )}
         </div>
       </aside>
 
@@ -158,7 +215,7 @@ export function Tools() {
               </div>
               
               <h1 className="text-4xl font-black text-white mb-2 leading-tight">
-                {selectedRepo === 'spotimageviewer' ? 'Spot Image Viewer' : 'Estimator'}
+                {repos.find(r => r.repoName === selectedRepoSlug)?.title || selectedRepoSlug.split('/').pop()}
               </h1>
               
               {release ? (

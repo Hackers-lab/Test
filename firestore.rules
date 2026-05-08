@@ -9,6 +9,10 @@ service cloud.firestore {
       return request.auth != null;
     }
     
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.email == 'pramod.theroxtar@gmail.com';
+    }
+    
     function isVerified() {
       return isSignedIn() && request.auth.token.email_verified == true;
     }
@@ -100,6 +104,23 @@ service cloud.firestore {
         && incoming().updatedAt is number;
         
       allow delete: if isVerified() && existing().authorId == request.auth.uid;
+    }
+
+    match /repositories/{repoId} {
+      function isValidRepo(data) {
+        return data.keys().hasAll(['repoName', 'title', 'description', 'createdAt'])
+          && data.repoName is string && data.repoName.size() > 0
+          && data.title is string && data.title.size() > 0
+          && data.description is string
+          && data.createdAt is number;
+      }
+      
+      allow read: if true;
+      allow create: if isAdmin() && isValidId(repoId) && isValidRepo(incoming()) && incoming().createdAt is number;
+      allow update: if isAdmin() && isValidRepo(incoming())
+        && incoming().diff(existing()).affectedKeys().hasOnly(['repoName', 'title', 'description'])
+        && incoming().createdAt == existing().createdAt;
+      allow delete: if isAdmin();
     }
   }
 }

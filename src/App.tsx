@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import { Layout } from "./components/Layout";
-import { Download, Monitor, Plus, BookOpen } from "lucide-react";
+import { Download, Monitor, Plus, BookOpen, Loader2 } from "lucide-react";
 import { fetchGithubApi } from "./lib/github";
 import { useState, useEffect } from "react";
 import { motion } from "motion/react";
@@ -9,6 +9,10 @@ import { Tools } from "./pages/Tools";
 import { Downloads } from "./pages/Downloads";
 import { Support } from "./pages/Support";
 import { About } from "./pages/About";
+import { Settings } from "./pages/Settings";
+import logo from "./assets/logo.png";
+import { collection, query, onSnapshot } from 'firebase/firestore';
+import { db } from './lib/firebase';
 
 // Placeholder data for github releases
 interface Release {
@@ -93,6 +97,49 @@ const AppFeatureCard = ({ repoName, title, description, to }: { repoName: string
 };
 
 const Home = () => {
+  const [repos, setRepos] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const q = query(collection(db, 'repositories'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      if (snapshot.empty) {
+        // Fallback to initial apps locally if db is empty
+        const initialApps = [
+          {
+            id: 'hackers-lab_spotimageviewer',
+            repoName: "Hackers-lab/spotimageviewer",
+            title: "Spot Image Viewer",
+            description: "Search meter images within a fraction of a second using consumer ID, name, meter number, or mobile number. Includes utilities like a theft bill calculator.",
+            createdAt: 1
+          },
+          {
+            id: 'hackers-lab_estimator',
+            repoName: "Hackers-lab/estimator",
+            title: "Estimator",
+            description: "Draw electrical lines on a canvas and automatically generate estimates. Features LT/HT lines, DTR structures, and allows exporting drawings and estimates to PDF and Excel.",
+            createdAt: 2
+          }
+        ];
+        
+        setRepos(initialApps);
+        setLoading(false);
+      } else {
+        const results: any[] = [];
+        snapshot.forEach(doc => {
+          results.push({ id: doc.id, ...doc.data() });
+        });
+        setRepos(results.sort((a, b) => a.createdAt - b.createdAt));
+        setLoading(false);
+      }
+    }, (error) => {
+      console.error(error);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   return (
     <PageTransition>
       <div className="p-4 md:p-8 max-w-7xl mx-auto h-full flex flex-col">
@@ -107,7 +154,7 @@ const Home = () => {
               className="w-14 h-14 md:w-20 md:h-20 rounded-full bg-slate-900 border border-white/10 p-1 overflow-hidden shadow-[0_0_30px_rgba(6,182,212,0.2)] shrink-0 flex items-center justify-center"
             >
               <img 
-                src="/logo.png" 
+                src={logo} 
                 alt="WBSEDCL Logo" 
                 className="w-full h-full object-contain" 
                 referrerPolicy="no-referrer" 
@@ -130,20 +177,23 @@ const Home = () => {
         </div>
 
         {/* Featured Apps Showcase */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2 mb-10">
-          <AppFeatureCard 
-            repoName="Hackers-lab/spotimageviewer"
-            title="Spot Image Viewer"
-            description="Search meter images within a fraction of a second using consumer ID, name, meter number, or mobile number. Includes utilities like a theft bill calculator."
-            to="/tools?app=spotimageviewer"
-          />
-          <AppFeatureCard 
-            repoName="Hackers-lab/estimator"
-            title="Estimator"
-            description="Draw electrical lines on a canvas and automatically generate estimates. Features LT/HT lines, DTR structures, and allows exporting drawings and estimates to PDF and Excel."
-            to="/tools?app=estimator"
-          />
-        </div>
+        {loading ? (
+          <div className="flex justify-center p-12">
+            <Loader2 className="w-8 h-8 text-cyan-500 animate-spin" />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2 mb-10">
+            {repos.map((repo) => (
+              <AppFeatureCard 
+                key={repo.id}
+                repoName={repo.repoName}
+                title={repo.title}
+                description={repo.description}
+                to={`/tools?app=${repo.repoName.split('/')[1]}`}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </PageTransition>
   );
@@ -172,6 +222,7 @@ export default function App() {
           <Route path="support" element={<Support />} />
           <Route path="forum" element={<Forum />} />
           <Route path="about" element={<About />} />
+          <Route path="settings" element={<Settings />} />
         </Route>
       </Routes>
     </BrowserRouter>

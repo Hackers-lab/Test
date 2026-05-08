@@ -43,7 +43,9 @@ async function startServer() {
       const response = await fetch(`https://api.github.com/${githubPath}`, { headers });
       
       if (!response.ok) {
-        console.error(`[GitHub Proxy] Error ${response.status} for ${githubPath}`);
+        if (response.status !== 404) {
+          console.error(`[GitHub Proxy] Error ${response.status} for ${githubPath}`);
+        }
         return res.status(response.status).json({ 
           error: `GitHub error: ${response.status}`,
           path: githubPath 
