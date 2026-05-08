@@ -134,13 +134,13 @@ const Home = () => {
           <AppFeatureCard 
             repoName="Hackers-lab/spotimageviewer"
             title="Spot Image Viewer"
-            description="A specialized software tool for viewing, analyzing, and processing complex spot images."
+            description="Search meter images within a fraction of a second using consumer ID, name, meter number, or mobile number. Includes utilities like a theft bill calculator."
             to="/tools?app=spotimageviewer"
           />
           <AppFeatureCard 
             repoName="Hackers-lab/estimator"
             title="Estimator"
-            description="A robust estimation utility to calculate, manage, and overview project dimensions."
+            description="Draw electrical lines on a canvas and automatically generate estimates. Features LT/HT lines, DTR structures, and allows exporting drawings and estimates to PDF and Excel."
             to="/tools?app=estimator"
           />
         </div>

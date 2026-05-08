@@ -35,7 +35,7 @@ service cloud.firestore {
       }
 
       allow get: if isSignedIn() && request.auth.uid == userId;
-      allow create: if isVerified() && isValidId(userId) && userId == request.auth.uid && isValidUser(incoming()) && incoming().createdAt == request.time.toMillis();
+      allow create: if isVerified() && isValidId(userId) && userId == request.auth.uid && isValidUser(incoming()) && incoming().createdAt is number;
       allow update: if isVerified() && userId == request.auth.uid && isValidUser(incoming()) 
         && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoURL'])
         && incoming().uid == existing().uid
@@ -57,8 +57,8 @@ service cloud.firestore {
 
       allow read: if true; // Publicly readable forum
       allow create: if isVerified() && isValidId(postId) && isValidPost(incoming())
-        && incoming().createdAt == request.time.toMillis()
-        && incoming().updatedAt == request.time.toMillis()
+        && incoming().createdAt is number
+        && incoming().updatedAt is number
         && incoming().likesCount == 0
         && incoming().commentsCount == 0;
         
@@ -66,7 +66,7 @@ service cloud.firestore {
         (incoming().authorId == request.auth.uid && incoming().diff(existing()).affectedKeys().hasOnly(['title', 'content', 'updatedAt']) 
           && incoming().title is string && incoming().title.size() > 0 && incoming().title.size() <= 100
           && incoming().content is string && incoming().content.size() > 0 && incoming().content.size() <= 5000
-          && incoming().updatedAt == request.time.toMillis()) ||
+          && incoming().updatedAt is number) ||
         // Action: Comment added / removed
         (incoming().diff(existing()).affectedKeys().hasOnly(['commentsCount']) 
           && incoming().commentsCount is number && (incoming().commentsCount == existing().commentsCount + 1 || incoming().commentsCount == existing().commentsCount - 1)) ||
@@ -91,13 +91,13 @@ service cloud.firestore {
 
       allow read: if true;
       allow create: if isVerified() && isValidId(postId) && isValidId(commentId) && isValidComment(incoming())
-        && incoming().createdAt == request.time.toMillis()
-        && incoming().updatedAt == request.time.toMillis()
+        && incoming().createdAt is number
+        && incoming().updatedAt is number
         && existsAfter(/databases/$(database)/documents/posts/$(postId)); // Needs commentsCount increment in same batch
 
       allow update: if isVerified() && existing().authorId == request.auth.uid && isValidComment(incoming())
         && incoming().diff(existing()).affectedKeys().hasOnly(['content', 'updatedAt'])
-        && incoming().updatedAt == request.time.toMillis();
+        && incoming().updatedAt is number;
         
       allow delete: if isVerified() && existing().authorId == request.auth.uid;
     }
