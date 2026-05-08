@@ -21,6 +21,7 @@ export function Tools() {
   const [selectedRepo, setSelectedRepo] = useState<'spotimageviewer' | 'estimator'>(initApp);
   const [release, setRelease] = useState<Release | null>(null);
   const [readme, setReadme] = useState<string>('');
+  const [readmeBaseUrl, setReadmeBaseUrl] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [ytLink, setYtLink] = useState<string | null>(null);
@@ -63,14 +64,28 @@ export function Tools() {
           setRelease(null);
         }
 
-        const readmeRes = await fetch(`https://raw.githubusercontent.com/${repoName}/main/README.md`);
         let readmeText = '';
-        if (readmeRes.ok) {
-           readmeText = await readmeRes.text();
-           setReadme(readmeText);
-        } else {
-           setReadme('');
+        let baseReadmeUrl = `https://raw.githubusercontent.com/${repoName}/main`;
+        try {
+          // Try to get README metadata to find the correct download URL (handles main vs master automatically)
+          const readmeMetaRes = await fetchGithubApi(`repos/${repoName}/readme`);
+          if (readmeMetaRes.ok) {
+            const readmeMeta = await readmeMetaRes.json();
+            const readmeRes = await fetch(readmeMeta.download_url);
+            if (readmeRes.ok) {
+              readmeText = await readmeRes.text();
+              const dUrl = new URL(readmeMeta.download_url);
+              // Strip out the filename at the end
+              const pathParts = dUrl.pathname.split('/');
+              pathParts.pop();
+              baseReadmeUrl = `${dUrl.origin}${pathParts.join('/')}`;
+            }
+          }
+        } catch (e) {
+           // Silently ignore if failed
         }
+        setReadme(readmeText);
+        setReadmeBaseUrl(baseReadmeUrl);
 
         // Try to extract YouTube URL from README or Release Body
         const combinedText = releaseBody + "\n" + readmeText;
@@ -212,7 +227,7 @@ export function Tools() {
                       remarkPlugins={[remarkGfm]}
                       urlTransform={(uri) => {
                         if (!uri.startsWith('http') && !uri.startsWith('mailto:') && !uri.startsWith('#')) {
-                          return `https://raw.githubusercontent.com/Hackers-lab/${selectedRepo}/main/${uri.replace(/^\//, '')}`;
+                          return `${readmeBaseUrl}/${uri.replace(/^\//, '')}`;
                         }
                         return uri;
                       }}
