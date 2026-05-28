@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import { Layout } from "./components/Layout";
-import { Download, Monitor, Plus, BookOpen, Loader2 } from "lucide-react";
+import { Download, Monitor, Plus, BookOpen, Loader2, Zap, ExternalLink } from "lucide-react";
 import { fetchGithubApi } from "./lib/github";
 import { useState, useEffect } from "react";
 import { motion } from "motion/react";
@@ -101,6 +101,51 @@ const AppFeatureCard = ({ repoName, title, description, to, webAppUrl }: { repoN
   );
 };
 
+const EstimatorWebCard = () => (
+  <motion.div
+    initial={{ opacity: 0, y: 16 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.4, delay: 0.1 }}
+    className="relative overflow-hidden rounded-3xl border border-emerald-500/30 bg-gradient-to-br from-emerald-950/60 via-slate-900/80 to-teal-950/60 shadow-2xl p-8 flex flex-col md:flex-row md:items-center gap-6"
+  >
+    {/* glow blobs */}
+    <div className="absolute -top-16 -left-16 w-64 h-64 bg-emerald-500/15 rounded-full blur-[80px] pointer-events-none" />
+    <div className="absolute -bottom-16 -right-16 w-64 h-64 bg-teal-500/10 rounded-full blur-[80px] pointer-events-none" />
+
+    {/* icon */}
+    <div className="relative shrink-0 w-16 h-16 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center shadow-lg">
+      <Zap className="w-8 h-8 text-emerald-400" />
+    </div>
+
+    {/* text */}
+    <div className="relative flex-1 min-w-0">
+      <div className="flex items-center gap-2 mb-2">
+        <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-[10px] uppercase tracking-widest font-bold text-emerald-400">
+          Web App · Live
+        </span>
+      </div>
+      <h2 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight mb-1">
+        ERP Field Companion — <span className="text-emerald-400">Estimator</span>
+      </h2>
+      <p className="text-slate-400 text-sm md:text-base max-w-xl">
+        Draw LT/HT electrical lines on an interactive canvas and instantly generate itemised estimates. Export drawings and bills to PDF or Excel — runs entirely in your browser, no install needed.
+      </p>
+    </div>
+
+    {/* button */}
+    <div className="relative shrink-0">
+      <a
+        href="/estimator/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-2 px-7 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold text-base shadow-[0_10px_30px_-5px_rgba(16,185,129,0.5)] hover:scale-105 active:scale-95 transition-all whitespace-nowrap"
+      >
+        Open Estimator <ExternalLink className="w-4 h-4" />
+      </a>
+    </div>
+  </motion.div>
+);
+
 const Home = () => {
   const [repos, setRepos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -188,7 +233,7 @@ const Home = () => {
             <Loader2 className="w-8 h-8 text-cyan-500 animate-spin" />
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2 mb-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2 mb-6">
             {repos.map((repo) => (
               <AppFeatureCard
                 key={repo.id}
@@ -199,6 +244,9 @@ const Home = () => {
                 webAppUrl={repo.webAppUrl}
               />
             ))}
+          </div>
+          <div className="mb-10">
+            <EstimatorWebCard />
           </div>
         )}
       </div>
