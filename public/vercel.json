@@ -1,6 +1,14 @@
 {
   "rewrites": [
     {
+      "source": "/estimator",
+      "destination": "/estimator/index.html"
+    },
+    {
+      "source": "/estimator/(.*)",
+      "destination": "/estimator/index.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

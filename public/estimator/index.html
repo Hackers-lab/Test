@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0C447C">
+<title>ERP Field Companion</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --blue:#185FA5;--blue-dark:#0C447C;--blue-light:#E6F1FB;
+  --lt:#2980b9;--ht:#c0392b;--dp:#27ae60;--tp:#1abc9c;--fp:#16a085;--dtr:#e67e22;--ex:#999;--consumer:#8e44ad;
+  --surface:#fff;--bg:#f0f4f9;--border:#dde4ef;--text:#1a2040;--muted:#6a7495;
+  --bar-h:56px;--tool-h:68px;--prop-h:72px;
+}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);}
+
+/* ── TOP BAR ── */
+#topbar{
+  position:fixed;top:0;left:0;right:0;height:var(--bar-h);
+  background:var(--blue-dark);display:flex;align-items:center;
+  padding:0 12px;gap:8px;z-index:200;
+  box-shadow:0 2px 8px rgba(0,0,0,0.25);
+}
+#topbar h1{color:#fff;font-size:15px;font-weight:700;flex:1;letter-spacing:-.2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+#topbar h1 span{font-size:11px;opacity:.65;font-weight:400;margin-left:6px;}
+.top-btn{
+  background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);
+  color:#fff;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:600;
+  cursor:pointer;white-space:nowrap;transition:background .15s;
+}
+.top-btn:active{background:rgba(255,255,255,0.3);}
+.top-btn.danger{background:rgba(220,50,50,0.3);border-color:rgba(255,100,100,0.4);}
+.top-btn.success{background:rgba(39,174,96,0.4);border-color:rgba(39,174,96,0.5);}
+.undo-redo-btn { font-size: 16px; padding: 4px 10px; }
+
+/* ── CANVAS AREA ── */
+#canvas-wrap{
+  position:fixed;
+  top:var(--bar-h);
+  left:0;right:0;
+  bottom:calc(var(--tool-h) + var(--prop-h));
+  overflow:hidden;background:#e8edf4;
+  touch-action:none;
+}
+#canvas-wrap.span-mode{cursor:crosshair;}
+#page-bg{
+  position:absolute;
+  background:white;
+  box-shadow:0 2px 20px rgba(0,0,0,0.18);
+  border-radius:3px;
+}
+svg#canvas{position:absolute;top:0;left:0;overflow:visible;}
+
+/* A4 border on page */
+#page-border{
+  position:absolute;border:1.5px solid #b0bcd4;border-radius:2px;pointer-events:none;
+}
+
+/* ── PROPERTY STRIP (above toolbar) ── */
+#prop-strip{
+  position:fixed;bottom:var(--tool-h);left:0;right:0;height:var(--prop-h);
+  background:#fff;border-top:1px solid var(--border);
+  display:flex;align-items:center;padding:0 10px;gap:8px;
+  overflow-x:auto;z-index:150;
+}
+#prop-strip::-webkit-scrollbar{display:none;}
+#prop-hint{color:var(--muted);font-size:12px;width:100%;text-align:center;}
+.prop-field{display:flex;flex-direction:column;gap:3px;min-width:90px;}
+.prop-field label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;white-space:nowrap;}
+.prop-field select,.prop-field input{
+  border:1px solid var(--border);border-radius:6px;padding:5px 7px;
+  font-size:12px;color:var(--text);background:#f8faff;outline:none;
+  min-width:80px;max-width:130px;
+}
+.prop-field select:focus,.prop-field input:focus{border-color:var(--blue);}
+.prop-del-btn{
+  min-width:36px;height:36px;border-radius:8px;border:1px solid #fcc;
+  background:#fee;color:#c0392b;font-size:16px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;margin-left:auto;flex-shrink:0;
+}
+.prop-del-btn:active{background:#fdd;}
+
+/* ── TOOLBAR ── */
+#toolbar{
+  position:fixed;bottom:0;left:0;right:0;height:var(--tool-h);
+  background:#fff;border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-around;
+  padding:6px 4px;z-index:200;
+}
+.tool-btn{
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:6px 4px;border-radius:10px;cursor:pointer;
+  border:2px solid transparent;min-width:46px;transition:all .15s;
+  background:transparent;
+}
+.tool-btn .t-icon{font-size:20px;line-height:1;}
+.tool-btn .t-label{font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.3px;text-transform:uppercase;}
+.tool-btn.active{background:var(--blue-light);border-color:var(--blue);}
+.tool-btn.active .t-label{color:var(--blue-dark);}
+.tool-btn:active{transform:scale(.93);}
+
+/* ── MODAL OVERLAY ── */
+.modal-bg{
+  position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:500;
+  display:flex;align-items:flex-end;justify-content:center;
+}
+.modal-bg.center{align-items:center;}
+.modal{
+  background:#fff;border-radius:18px 18px 0 0;width:100%;max-width:480px;
+  padding:20px 20px 36px;max-height:90vh;overflow-y:auto;
+}
+.modal.center-modal{border-radius:14px;margin:16px;max-height:85vh;}
+.modal h2{font-size:16px;font-weight:700;margin-bottom:16px;color:var(--blue-dark);}
+.modal-row{margin-bottom:14px;}
+.modal-row label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.3px;}
+.modal-row input,.modal-row select,.modal-row textarea{
+  width:100%;border:1px solid var(--border);border-radius:8px;
+  padding:10px 12px;font-size:14px;color:var(--text);outline:none;
+  background:#f8faff;font-family:inherit;
+}
+.modal-row textarea{min-height:70px;resize:none;}
+.modal-row input:focus,.modal-row select:focus,.modal-row textarea:focus{border-color:var(--blue);}
+.modal-btn{
+  width:100%;padding:13px;border-radius:10px;border:none;
+  font-size:15px;font-weight:700;cursor:pointer;margin-top:8px;
+}
+.modal-btn.primary{background:var(--blue);color:#fff;}
+.modal-btn.primary:active{background:var(--blue-dark);}
+.modal-btn.secondary{background:#f0f4f9;color:var(--text);}
+.modal-btn.secondary:active{background:#e2e8f0;}
+.modal-close{float:right;font-size:22px;cursor:pointer;color:var(--muted);line-height:1;margin-top:-2px;}
+
+/* ── TOAST ── */
+#toast{
+  position:fixed;bottom:calc(var(--tool-h) + var(--prop-h) + 12px);left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:rgba(12,68,124,0.95);color:#fff;border-radius:20px;
+  padding:9px 20px;font-size:13px;font-weight:600;z-index:999;
+  opacity:0;transition:all .25s;pointer-events:none;white-space:nowrap;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ── SPAN PENDING INDICATOR ── */
+#span-hint{
+  position:fixed;top:calc(var(--bar-h) + 10px);left:50%;transform:translateX(-50%);
+  background:#e67e22;color:#fff;border-radius:20px;padding:7px 18px;
+  font-size:12px;font-weight:700;z-index:300;display:none;
+  box-shadow:0 2px 8px rgba(0,0,0,0.2);
+}
+
+/* ── SHARE MODAL ── */
+#share-modal .share-box{
+  background:#f0f4f9;border:2px dashed var(--border);border-radius:10px;
+  padding:16px;margin:12px 0;text-align:center;
+}
+#share-modal .share-box p{font-size:13px;color:var(--muted);margin-bottom:10px;}
+#share-modal .share-btns{display:grid;grid-template-columns:1fr;gap:10px;margin-top:12px;}
+.share-btn{
+  padding:14px 10px;border-radius:10px;border:1px solid var(--border);
+  background:#fff;cursor:pointer;font-size:14px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  color:var(--text);
+}
+.share-btn:active{background:var(--blue-light);border-color:var(--blue);}
+
+/* ── OBJECT VISUAL STYLES in SVG (via CSS) ── */
+.node-lt{fill:var(--lt);stroke:#1a5f8a;stroke-width:2;}
+.node-ht{fill:var(--ht);stroke:#8b1a1a;stroke-width:2;}
+.node-dp{fill:var(--dp);stroke:#1a6b2a;stroke-width:2;}
+.node-tp{fill:var(--tp);stroke:#0e7a62;stroke-width:2;}
+.node-4p{fill:var(--fp);stroke:#0a5040;stroke-width:2;}
+.node-dtr{fill:var(--dtr);stroke:#9a4500;stroke-width:2;}
+.node-ex{fill:var(--ex);stroke:#666;stroke-width:2;}
+.node-consumer{fill:var(--consumer);stroke:#6a2090;stroke-width:1.5;}
+.span-lt{stroke:#2980b9;stroke-width:2.5;fill:none;}
+.span-ht{stroke:#c0392b;stroke-width:3;fill:none;stroke-dasharray:none;}
+.span-ex{stroke:#999;stroke-width:2;fill:none;stroke-dasharray:6,4;}
+.span-sd{stroke:#8e44ad;stroke-width:1.5;fill:none;stroke-dasharray:4,3;}
+.node-label{fill:#fff;font-size:9px;font-weight:700;text-anchor:middle;dominant-baseline:central;pointer-events:none;}
+.pole-label{fill:#333;font-size:9px;text-anchor:middle;pointer-events:none;}
+.span-label{fill:var(--muted);font-size:8px;text-anchor:middle;pointer-events:none;}
+.selected-ring{fill:none;stroke:#f39c12;stroke-width:3;stroke-dasharray:5,3;}
+
+/* ── PRINT / PDF EXPORT STYLES ── */
+#print-area { display: none; position: absolute; background: #fff; padding: 0; }
+#print-header { display: none; background: var(--blue-dark); color: #fff; padding: 14px 18px 10px; font-family: sans-serif; }
+#print-header h1 { font-size: 16px; font-weight: 700; margin-bottom: 3px; }
+#print-header .ph-sub { font-size: 11px; opacity: .8; }
+#print-legend { display: none; background: #f5f8fc; border: 1px solid #c8d4e8; border-radius: 6px; padding: 10px 14px; margin: 10px; font-size: 11px; }
+#print-legend h4 { font-size: 11px; font-weight: 700; color: var(--blue-dark); margin-bottom: 6px; }
+#print-legend .leg-grid { display: flex; flex-wrap: wrap; gap: 6px 18px; }
+#print-legend .leg-item { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+#print-legend .leg-sym { font-size: 13px; }
+#print-legend .leg-val { color: var(--muted); }
+
+@media print {
+  @page { size: A4 portrait; margin: 10mm; }
+  body { background: #fff !important; }
+  #topbar, #prop-strip, #toolbar, .modal-bg, #span-hint, #toast { display: none !important; }
+  #canvas-wrap { position: relative !important; top: 0 !important; left: 0 !important; height: auto !important; bottom: auto !important; background: #fff !important; overflow: visible !important; }
+  #page-bg, #page-border { display: none !important; }
+  svg#canvas { position: relative !important; top: 0 !important; left: 0 !important; width: 100% !important; height: auto !important; transform: none !important; }
+  #print-header { display: block !important; }
+  #print-legend { display: block !important; }
+}
+
+/* ── LANDSCAPE A4 ── */
+@media (orientation: landscape) and (min-aspect-ratio: 1.2/1) {
+  :root { --bar-h: 48px; --tool-h: 60px; --prop-h: 64px; }
+}
+
+/* ── SETTINGS MODAL ── */
+.settings-section { border-top: 1px solid var(--border); padding-top: 12px; margin-top: 12px; }
+.settings-section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin-bottom: 8px; }
+
+/* ── ESTIMATE PANEL ── */
+#est-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:600;display:none;align-items:flex-end;justify-content:center;}
+#est-overlay.open{display:flex;}
+#est-panel{background:#fff;border-radius:18px 18px 0 0;width:100%;max-width:520px;max-height:88vh;display:flex;flex-direction:column;}
+#est-header{background:var(--blue-dark);color:#fff;padding:14px 16px;border-radius:18px 18px 0 0;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+#est-header h3{font-size:15px;font-weight:700;flex:1;margin:0;}
+.est-close{background:none;border:none;color:#fff;font-size:20px;cursor:pointer;padding:0 4px;}
+#est-body{flex:1;overflow-y:auto;padding-bottom:16px;}
+.est-meta{padding:10px 14px;background:#f8faff;font-size:12px;color:var(--muted);border-bottom:1px solid var(--border);}
+.est-section-hdr{padding:8px 14px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);background:#f4f6fb;border-bottom:1px solid var(--border);}
+.est-row{display:flex;align-items:flex-start;gap:6px;padding:7px 14px;border-bottom:1px solid #f0f2f8;}
+.est-row:last-child{border-bottom:none;}
+.est-badge{min-width:20px;height:17px;border-radius:3px;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.est-badge.M{background:#ddeeff;color:#0C447C;}
+.est-badge.L{background:#ddf5e8;color:#1a6b2a;}
+.est-name{flex:1;font-size:12px;color:var(--text);line-height:1.4;}
+.est-code{font-size:10px;color:var(--muted);}
+.est-right{text-align:right;flex-shrink:0;}
+.est-qty{font-size:10px;color:var(--muted);}
+.est-amt{font-size:12px;font-weight:700;color:var(--text);}
+.est-subtotal{display:flex;justify-content:space-between;padding:9px 14px;font-size:13px;font-weight:700;background:#f0f4f9;border-top:1px solid var(--border);}
+.est-tax{display:flex;justify-content:space-between;padding:7px 14px;font-size:12px;color:#555;background:#fafbff;border-top:1px solid #eef0f8;}
+.est-total{display:flex;justify-content:space-between;padding:13px 14px;font-size:15px;font-weight:700;background:var(--blue-dark);color:#fff;}
+.est-empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:14px;}
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <h1 id="app-title">⚡ Field <span id="app-subtitle">Companion</span></h1>
+  <button class="top-btn undo-redo-btn" onclick="undo()" title="Undo">↶</button>
+  <button class="top-btn undo-redo-btn" onclick="redo()" title="Redo">↷</button>
+  <button class="top-btn" onclick="showAppSettings()" title="App Defaults">🔧</button>
+  <button class="top-btn" onclick="showProjectSetup()" title="Project Setup">⚙️</button>
+  <button class="top-btn" onclick="importJSON()" title="Open / New">📂</button>
+  <button class="top-btn" onclick="showEstimatePanel()" style="background:rgba(243,156,18,0.4);border-color:rgba(243,156,18,0.6);">📊</button>
+  <button class="top-btn success" onclick="showShare()">📤</button>
+</div>
+
+<div id="print-header"></div>
+<div id="print-legend"></div>
+
+<div id="canvas-wrap">
+  <div id="page-bg"></div>
+  <div id="page-border"></div>
+  <svg id="canvas" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="arr" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+        <path d="M0,0 L6,3 L0,6 Z" fill="#999"/>
+      </marker>
+    </defs>
+    <g id="spans-layer"></g>
+    <g id="nodes-layer"></g>
+    <g id="labels-layer"></g>
+  </svg>
+</div>
+
+<div id="span-hint">📏 Tap second pole to complete span</div>
+
+<div id="prop-strip">
+  <span id="prop-hint">Tap an object to edit properties</span>
+</div>
+
+<div id="toolbar">
+  <div class="tool-btn active" data-tool="SELECT" onclick="setTool('SELECT')">
+    <div class="t-icon">🖱️</div><div class="t-label">Select</div>
+  </div>
+  <div class="tool-btn" data-tool="ADD_LT" onclick="setTool('ADD_LT')">
+    <div class="t-icon">🔵</div><div class="t-label">LT Pole</div>
+  </div>
+  <div class="tool-btn" data-tool="ADD_HT" onclick="setTool('ADD_HT')">
+    <div class="t-icon">🔴</div><div class="t-label">HT Pole</div>
+  </div>
+  <div class="tool-btn" data-tool="ADD_STRUCTURE" onclick="setTool('ADD_STRUCTURE')">
+    <div class="t-icon">🟩</div><div class="t-label">Structure</div>
+  </div>
+  <div class="tool-btn" data-tool="ADD_EXISTING" onclick="setTool('ADD_EXISTING')">
+    <div class="t-icon">⚪</div><div class="t-label">Existing</div>
+  </div>
+  <div class="tool-btn" data-tool="ADD_CONSUMER" onclick="setTool('ADD_CONSUMER')">
+    <div class="t-icon">🏠</div><div class="t-label">Consumer</div>
+  </div>
+  <div class="tool-btn" data-tool="ADD_SPAN" onclick="setTool('ADD_SPAN')">
+    <div class="t-icon">📏</div><div class="t-label">Span</div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<div id="proj-modal" class="modal-bg" style="display:none" onclick="closeModal('proj-modal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <span class="modal-close" onclick="closeModal('proj-modal')">✕</span>
+    <h2>⚙️ Project Setup</h2>
+    <div class="modal-row">
+      <label>Project Name / Subject</label>
+      <textarea id="p-subject" placeholder="e.g. GOCHIYA II LT Line Extension"></textarea>
+    </div>
+    <div class="modal-row">
+      <label>GPS Latitude</label>
+      <input id="p-lat" type="number" step="0.0001" placeholder="e.g. 22.5726">
+    </div>
+    <div class="modal-row">
+      <label>GPS Longitude</label>
+      <input id="p-lon" type="number" step="0.0001" placeholder="e.g. 88.3639">
+    </div>
+    <div class="modal-row">
+      <label>Division</label>
+      <input id="p-division" placeholder="Division name">
+    </div>
+    <div class="modal-row">
+      <label>Circle</label>
+      <input id="p-circle" placeholder="Circle name">
+    </div>
+    <div class="modal-row">
+      <label>Project Type</label>
+      <select id="p-type">
+        <option value="NSC">NSC (New Service Connection) — 10% supervision</option>
+        <option value="FDS / TURNKEY">FDS / TURNKEY — 15% supervision</option>
+      </select>
+    </div>
+    <div class="modal-row">
+      <label>Use UH (Readymade) Materials?</label>
+      <select id="p-uh">
+        <option value="false">No — Raw Steel</option>
+        <option value="true">Yes — UH Readymade</option>
+      </select>
+    </div>
+    <button class="modal-btn primary" onclick="saveProject()">✔ Save & Continue</button>
+    <button class="modal-btn secondary" onclick="closeModal('proj-modal')">Cancel</button>
+  </div>
+</div>
+
+<div id="struct-modal" class="modal-bg center" style="display:none">
+  <div class="modal center-modal" onclick="event.stopPropagation()">
+    <h2>🟩 Choose Structure Type</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px;">
+      <button class="modal-btn primary" style="background:#27ae60" onclick="placeStructure('DP')">🟩 DP<br><small style="font-weight:400;font-size:11px">Double Pole</small></button>
+      <button class="modal-btn primary" style="background:#1abc9c" onclick="placeStructure('TP')">🟩 TP<br><small style="font-weight:400;font-size:11px">Triple Pole</small></button>
+      <button class="modal-btn primary" style="background:#16a085" onclick="placeStructure('4P')">🟩 4P<br><small style="font-weight:400;font-size:11px">Four Pole</small></button>
+      <button class="modal-btn primary" style="background:#e67e22" onclick="placeStructure('DTR')">🟧 DTR<br><small style="font-weight:400;font-size:11px">Transformer</small></button>
+    </div>
+    <button class="modal-btn secondary" style="margin-top:10px" onclick="closeModal('struct-modal')">Cancel</button>
+  </div>
+</div>
+
+<div id="share-modal" class="modal-bg" style="display:none" onclick="closeModal('share-modal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <span class="modal-close" onclick="closeModal('share-modal')">✕</span>
+    <h2>📤 Share / Export</h2>
+    <div class="share-box">
+      <p id="share-summary" style="font-size:12px;color:var(--muted);text-align:left;">—</p>
+    </div>
+    <p style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin:10px 0 6px;">Drawing</p>
+    <div class="share-btns">
+      <button class="share-btn" onclick="sharePDF()" style="background:#E6F1FB;color:#0C447C;border-color:#185FA5;">
+        <span>📄</span> Share / Download PDF
+        <span style="font-size:10px;color:#666;margin-left:auto;">With legend & heading</span>
+      </button>
+    </div>
+    <p style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin:12px 0 6px;">Estimate</p>
+    <div class="share-btns">
+      <button class="share-btn" onclick="shareEstimateXLSX()" style="background:#f0fff4;color:#1a6b2a;border-color:#27ae60;">
+        <span>📊</span> Share / Download Excel (.xlsx)
+        <span style="font-size:10px;color:#666;margin-left:auto;">Mat + Lab sheets</span>
+      </button>
+    </div>
+    <p style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin:12px 0 6px;">Project Data</p>
+    <div class="share-btns">
+      <button class="share-btn" onclick="shareJSON()">
+        <span>📋</span> Share / Download JSON
+        <span style="font-size:10px;color:#666;margin-left:auto;">Desktop ERP compatible</span>
+      </button>
+      <button class="share-btn" onclick="copyJSONText()" style="background:#fafafa;">
+        <span>📝</span> Copy JSON to Clipboard
+      </button>
+    </div>
+    <button class="modal-btn secondary" style="margin-top:14px" onclick="closeModal('share-modal')">Close</button>
+  </div>
+</div>
+
+<div id="import-modal" class="modal-bg center" style="display:none" onclick="closeModal('import-modal')">
+  <div class="modal center-modal" onclick="event.stopPropagation()">
+    <h2>📂 Open / New Project</h2>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Open an existing ERP project file or start fresh.</p>
+    <input type="file" id="file-input" accept=".json" style="display:none" onchange="loadJSONFile(this)">
+    <button class="modal-btn primary" onclick="document.getElementById('file-input').click()">📂 Open Existing .json File</button>
+    <div style="text-align:center;padding:10px 0;color:var(--muted);font-size:12px;font-weight:600;">— or —</div>
+    <button class="modal-btn secondary" style="background:#fff5f5;color:#c0392b;border:1px solid #ffcccc;" onclick="newProject()">🆕 Start New Project</button>
+    <button class="modal-btn secondary" onclick="closeModal('import-modal')">Cancel</button>
+  </div>
+</div>
+
+<!-- APP DEFAULTS SETTINGS -->
+<div id="settings-modal" class="modal-bg" style="display:none" onclick="closeModal('settings-modal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <span class="modal-close" onclick="closeModal('settings-modal')">✕</span>
+    <h2>🔧 App Defaults</h2>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">These defaults are saved locally on this device and pre-fill new projects.</p>
+    <div class="settings-section">
+      <div class="settings-section-title">Project Defaults</div>
+      <div class="modal-row">
+        <label>Default Division</label>
+        <input id="s-division" placeholder="e.g. Kolkata South Division">
+      </div>
+      <div class="modal-row">
+        <label>Default Circle</label>
+        <input id="s-circle" placeholder="e.g. Barasat Circle">
+      </div>
+      <div class="modal-row">
+        <label>Default Project Type</label>
+        <select id="s-proj-type">
+          <option value="NSC">NSC — 10% supervision</option>
+          <option value="FDS / TURNKEY">FDS / TURNKEY — 15% supervision</option>
+        </select>
+      </div>
+      <div class="modal-row">
+        <label>Default Material (UH / Raw Steel)</label>
+        <select id="s-uh">
+          <option value="false">Raw Steel</option>
+          <option value="true">UH Readymade</option>
+        </select>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title">Pole Defaults</div>
+      <div class="modal-row">
+        <label>Default LT Pole Material</label>
+        <select id="s-lt-mat">
+          <option value="PCC">PCC</option>
+          <option value="STP">STP</option>
+          <option value="H-BEAM">H-BEAM</option>
+        </select>
+      </div>
+      <div class="modal-row">
+        <label>Default LT Pole Height (PCC)</label>
+        <select id="s-lt-h">
+          <option value="8">8 MTR</option>
+          <option value="9">9 MTR</option>
+        </select>
+      </div>
+      <div class="modal-row">
+        <label>Default HT Pole Material</label>
+        <select id="s-ht-mat">
+          <option value="PCC">PCC</option>
+          <option value="STP">STP</option>
+          <option value="H-BEAM">H-BEAM</option>
+        </select>
+      </div>
+      <div class="modal-row">
+        <label>Default HT Pole Height (PCC)</label>
+        <select id="s-ht-h">
+          <option value="9">9 MTR</option>
+          <option value="8">8 MTR</option>
+        </select>
+      </div>
+      <div class="modal-row">
+        <label>Default Earth Count (LT)</label>
+        <select id="s-lt-earth">
+          <option value="1">1</option>
+          <option value="0">0</option>
+          <option value="2">2</option>
+        </select>
+      </div>
+      <div class="modal-row">
+        <label>Default Stay Count (LT)</label>
+        <select id="s-lt-stay">
+          <option value="0">0</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+        </select>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title">Span Defaults</div>
+      <div class="modal-row">
+        <label>Default Span Length (m)</label>
+        <input id="s-span-len" type="number" min="10" max="500" value="40">
+      </div>
+      <div class="modal-row">
+        <label>Default AB Cable Size (LT span)</label>
+        <select id="s-ab-size">
+          <option value="3CX70+1CX16+1CX50">3CX70+1CX16+1CX50 (70 sqmm)</option>
+          <option value="3CX50+1CX16+1CX35">3CX50+1CX16+1CX35 (50 sqmm)</option>
+          <option value="3CX50+1CX35">3CX50+1CX35</option>
+        </select>
+      </div>
+      <div class="modal-row">
+        <label>Default ACSR Size (HT span)</label>
+        <select id="s-acsr-size">
+          <option value="50SQMM">50 SQMM</option>
+          <option value="30SQMM">30 SQMM</option>
+        </select>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title">Consumer / Service Drop Defaults</div>
+      <div class="modal-row">
+        <label>Default Consumer Phase</label>
+        <select id="s-sd-phase">
+          <option value="1 Phase">1 Phase (Single Phase)</option>
+          <option value="3 Phase">3 Phase</option>
+        </select>
+      </div>
+      <div class="modal-row">
+        <label>Default Service Drop Cable Size</label>
+        <select id="s-sd-cable">
+          <option value="10 SQMM">10 SQMM</option>
+          <option value="16 SQMM">16 SQMM</option>
+          <option value="25 SQMM">25 SQMM</option>
+        </select>
+      </div>
+    </div>
+    <button class="modal-btn primary" onclick="saveAppSettings()">✔ Save Defaults</button>
+    <button class="modal-btn secondary" onclick="closeModal('settings-modal')">Cancel</button>
+  </div>
+</div>
+
+<script src="erp-web-data.js"></script>
+<script src="erp-web-app.js"></script>
+
+<!-- ESTIMATE PANEL OVERLAY -->
+<div id="est-overlay" onclick="hideEstimatePanel()">
+  <div id="est-panel" onclick="event.stopPropagation()">
+    <div id="est-header">
+      <h3>📊 Live Estimate</h3>
+      <button class="top-btn" onclick="shareEstimateXLSX()" style="font-size:11px;padding:4px 8px;">📊 Excel</button>
+      <button class="est-close" onclick="hideEstimatePanel()">✕</button>
+    </div>
+    <div id="est-body"><div class="est-empty">Loading...</div></div>
+  </div>
+</div>
+
+</body>
+</html>
