@@ -33,7 +33,7 @@ export const PageTransition = ({ children }: { children: React.ReactNode }) => (
   </motion.div>
 );
 
-const AppFeatureCard = ({ repoName, title, description, to }: { repoName: string, title: string, description: string, to: string }) => {
+const AppFeatureCard = ({ repoName, title, description, to, webAppUrl }: { repoName: string, title: string, description: string, to: string, webAppUrl?: string }) => {
   const [release, setRelease] = useState<Release | null>(null);
 
   useEffect(() => {
@@ -85,6 +85,11 @@ const AppFeatureCard = ({ repoName, title, description, to }: { repoName: string
         <Link to={to} className="px-6 py-3 rounded-2xl bg-gradient-to-r from-cyan-600 to-blue-700 text-white font-bold text-center shadow-[0_10px_25px_-5px_rgba(6,182,212,0.4)] hover:scale-105 active:scale-95 transition-all">
           Explore App
         </Link>
+        {webAppUrl && (
+          <a href={webAppUrl} target="_blank" rel="noopener noreferrer" className="px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-700 text-white font-bold text-center shadow-[0_10px_25px_-5px_rgba(16,185,129,0.4)] hover:scale-105 active:scale-95 transition-all">
+            Open Web App
+          </a>
+        )}
         <div className="flex gap-4 items-center">
           <div className="flex flex-col">
             <span className="text-[10px] text-slate-500 uppercase font-bold tracking-tighter">Updated</span>
@@ -118,7 +123,8 @@ const Home = () => {
             repoName: "Hackers-lab/estimator",
             title: "Estimator",
             description: "Draw electrical lines on a canvas and automatically generate estimates. Features LT/HT lines, DTR structures, and allows exporting drawings and estimates to PDF and Excel.",
-            createdAt: 2
+            createdAt: 2,
+            webAppUrl: "/estimator/"
           }
         ];
         
@@ -184,12 +190,13 @@ const Home = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2 mb-10">
             {repos.map((repo) => (
-              <AppFeatureCard 
+              <AppFeatureCard
                 key={repo.id}
                 repoName={repo.repoName}
                 title={repo.title}
                 description={repo.description}
                 to={`/tools?app=${repo.repoName.split('/')[1]}`}
+                webAppUrl={repo.webAppUrl}
               />
             ))}
           </div>
