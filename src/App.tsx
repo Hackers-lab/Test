@@ -233,21 +233,23 @@ const Home = () => {
             <Loader2 className="w-8 h-8 text-cyan-500 animate-spin" />
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2 mb-6">
-            {repos.map((repo) => (
-              <AppFeatureCard
-                key={repo.id}
-                repoName={repo.repoName}
-                title={repo.title}
-                description={repo.description}
-                to={`/tools?app=${repo.repoName.split('/')[1]}`}
-                webAppUrl={repo.webAppUrl}
-              />
-            ))}
-          </div>
-          <div className="mb-10">
-            <EstimatorWebCard />
-          </div>
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2 mb-6">
+              {repos.map((repo) => (
+                <AppFeatureCard
+                  key={repo.id}
+                  repoName={repo.repoName}
+                  title={repo.title}
+                  description={repo.description}
+                  to={`/tools?app=${repo.repoName.split('/')[1]}`}
+                  webAppUrl={repo.webAppUrl}
+                />
+              ))}
+            </div>
+            <div className="mb-10">
+              <EstimatorWebCard />
+            </div>
+          </>
         )}
       </div>
     </PageTransition>
