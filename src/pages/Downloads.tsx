@@ -7,6 +7,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { collection, query, getDocs } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import { FeedbackWidget } from '../components/FeedbackWidget';
 
 interface Asset {
   name: string;
@@ -32,6 +33,7 @@ interface AppReleases {
 
 const ReleaseItem = ({ release, isLatest, repo }: { release: Release, isLatest: boolean, repo: string }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const totalDownloads = (release.assets || []).reduce((sum, a) => sum + (a.download_count || 0), 0);
 
   return (
     <div className="bg-slate-900/60 border border-white/5 rounded-2xl overflow-hidden transition-all hover:border-white/10 mb-4">
@@ -46,6 +48,11 @@ const ReleaseItem = ({ release, isLatest, repo }: { release: Release, isLatest: 
               {isLatest && (
                 <span className="bg-green-500/20 text-green-400 text-[10px] font-bold px-2 py-0.5 rounded-lg uppercase tracking-wider">
                   Latest
+                </span>
+              )}
+              {totalDownloads > 0 && (
+                <span className="bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-[10px] font-bold px-2 py-0.5 rounded-lg flex items-center gap-1">
+                  <Download className="w-2.5 h-2.5" /> {totalDownloads.toLocaleString()} downloads
                 </span>
               )}
             </div>
@@ -64,6 +71,9 @@ const ReleaseItem = ({ release, isLatest, repo }: { release: Release, isLatest: 
               >
                 <Download className="w-3 h-3" />
                 {asset.name}
+                {typeof asset.download_count === 'number' && (
+                  <span className="text-[10px] opacity-75 font-mono">({asset.download_count.toLocaleString()})</span>
+                )}
               </a>
             ))}
           </div>
@@ -114,10 +124,17 @@ const ReleaseItem = ({ release, isLatest, repo }: { release: Release, isLatest: 
                           href={asset.browser_download_url} 
                           className="flex items-center justify-between p-3 rounded-xl bg-slate-800/50 hover:bg-cyan-500/20 hover:text-cyan-300 transition-colors text-sm font-medium text-slate-300"
                         >
-                          <span className="truncate mr-2">{asset.name}</span>
+                          <div className="flex flex-col truncate mr-2">
+                            <span className="truncate">{asset.name}</span>
+                            {typeof asset.download_count === 'number' && (
+                              <span className="text-[10px] text-cyan-400/80 font-mono">
+                                {asset.download_count.toLocaleString()} total downloads
+                              </span>
+                            )}
+                          </div>
                           <div className="flex items-center gap-3 shrink-0">
                             <span className="text-[10px] text-slate-600">{(asset.size / 1024 / 1024).toFixed(1)} MB</span>
-                            <Download className="w-4 h-4" />
+                            <Download className="w-4 h-4 text-cyan-400" />
                           </div>
                         </a>
                       ))
@@ -236,6 +253,10 @@ export function Downloads() {
                     ))}
                   </div>
                 )}
+
+                <div className="mt-4">
+                  <FeedbackWidget toolId={app.repo.replace('/', '_')} toolTitle={app.title} />
+                </div>
               </motion.div>
             ))}
           </div>

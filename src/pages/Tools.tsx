@@ -7,12 +7,20 @@ import remarkGfm from 'remark-gfm';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { collection, query, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import { FeedbackWidget } from '../components/FeedbackWidget';
+
+interface ReleaseAsset {
+  name: string;
+  size: number;
+  browser_download_url: string;
+  download_count?: number;
+}
 
 interface Release {
   name: string;
   tag_name: string;
   published_at: string;
-  assets: { name: string; size: number; browser_download_url: string }[];
+  assets: ReleaseAsset[];
   body: string;
 }
 
@@ -234,6 +242,14 @@ export function Tools() {
                        <span className="text-[10px] text-slate-500 uppercase font-bold tracking-tighter">Updated</span>
                        <span className="text-white font-mono text-sm">{new Date(release.published_at).toLocaleDateString()}</span>
                      </div>
+                     {release.assets[0]?.download_count !== undefined && (
+                       <div className="flex flex-col">
+                         <span className="text-[10px] text-slate-500 uppercase font-bold tracking-tighter">Downloads</span>
+                         <span className="text-emerald-400 font-mono text-sm font-bold">
+                           {release.assets.reduce((sum, a) => sum + (a.download_count || 0), 0).toLocaleString()}
+                         </span>
+                       </div>
+                     )}
                    </div>
                  </div>
               ) : (
@@ -295,6 +311,12 @@ export function Tools() {
                 </div>
             )}
             
+            {/* Feedback & Ratings Widget */}
+            <FeedbackWidget 
+              toolId={selectedRepoSlug.replace('/', '_')} 
+              toolTitle={repos.find(r => r.repoName === selectedRepoSlug)?.title || selectedRepoSlug.split('/').pop() || 'Tool'} 
+            />
+
           </motion.div>
         )}
       </section>

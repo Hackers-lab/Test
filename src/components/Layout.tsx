@@ -1,11 +1,12 @@
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
-import { Menu, X, MessageSquare, Settings } from "lucide-react";
+import { Menu, X, MessageSquare, Settings, Users, Eye } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "../lib/utils";
 import logo from "../assets/logo.png";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../lib/firebase";
+import { trackSiteVisit, subscribeToSiteVisits } from "../lib/stats";
 
 const navItems = [
   { name: "Home", path: "/" },
@@ -20,7 +21,16 @@ export function Layout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showWhatsApp, setShowWhatsApp] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [visitorCount, setVisitorCount] = useState<number | null>(null);
   const location = useLocation();
+
+  useEffect(() => {
+    trackSiteVisit();
+    const unsub = subscribeToSiteVisits((count) => {
+      setVisitorCount(count);
+    });
+    return () => unsub();
+  }, []);
 
   useEffect(() => {
     const hasInteracted = localStorage.getItem("whatsapp_joined");
@@ -230,15 +240,21 @@ export function Layout() {
       </main>
 
       {/* Footer */}
-      <footer className="h-min md:h-12 border-t border-white/5 flex flex-col md:flex-row md:items-center justify-between px-8 bg-slate-950 py-4 md:py-0 shrink-0">
-        <div className="text-[10px] text-slate-600 uppercase font-bold tracking-widest text-center md:text-left mb-2 md:mb-0">
+      <footer className="h-min md:h-12 border-t border-white/5 flex flex-col md:flex-row md:items-center justify-between px-4 md:px-8 bg-slate-950 py-4 md:py-0 shrink-0 gap-3 md:gap-0">
+        <div className="text-[10px] text-slate-500 uppercase font-bold tracking-widest text-center md:text-left">
           © {new Date().getFullYear()} WBSEDCL TOOLS INTEGRATED ECOSYSTEM
         </div>
-        <div className="flex justify-center md:justify-end gap-4">
-          <span className="text-[10px] text-slate-600 flex items-center gap-1">
+        <div className="flex flex-wrap items-center justify-center md:justify-end gap-3 sm:gap-6">
+          {visitorCount !== null && (
+            <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-[10px] text-cyan-400 font-mono font-bold">
+              <Eye className="w-3 h-3 text-cyan-400" />
+              <span>{visitorCount.toLocaleString()} VISITS</span>
+            </div>
+          )}
+          <span className="text-[10px] text-slate-500 flex items-center gap-1">
             STATUS: <span className="text-green-500 font-bold">ALL SYSTEMS OPERATIONAL</span>
           </span>
-          <span className="text-[10px] text-slate-600">UPTIME: 99.9%</span>
+          <span className="text-[10px] text-slate-500">UPTIME: 99.9%</span>
         </div>
       </footer>
     </div>

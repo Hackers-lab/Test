@@ -122,5 +122,27 @@ service cloud.firestore {
         && incoming().createdAt == existing().createdAt;
       allow delete: if isAdmin();
     }
+
+    match /site_stats/{statId} {
+      allow read: if true;
+      allow create, update: if isValidId(statId) 
+        && request.resource.data.visitCount is number
+        && request.resource.data.visitCount >= 0;
+    }
+
+    match /feedbacks/{feedbackId} {
+      function isValidFeedback(data) {
+        return data.keys().hasAll(['toolId', 'rating', 'comment', 'authorName', 'createdAt'])
+          && data.toolId is string && data.toolId.size() > 0 && data.toolId.size() <= 100
+          && data.rating is number && data.rating >= 1 && data.rating <= 5
+          && data.comment is string && data.comment.size() > 0 && data.comment.size() <= 2000
+          && data.authorName is string && data.authorName.size() <= 100
+          && data.createdAt is number;
+      }
+
+      allow read: if true;
+      allow create: if isValidId(feedbackId) && isValidFeedback(incoming());
+      allow delete: if isAdmin();
+    }
   }
 }
