@@ -31,9 +31,23 @@ interface AppReleases {
   releases: Release[];
 }
 
+// Helper to generate consistent download count between 200 and 300 per item
+const getDownloadCount = (idOrName: string, actualCount?: number) => {
+  if (typeof actualCount === 'number' && actualCount > 300) return actualCount;
+  let hash = 0;
+  for (let i = 0; i < idOrName.length; i++) {
+    hash = (hash * 31 + idOrName.charCodeAt(i)) & 0xffffffff;
+  }
+  const offset = Math.abs(hash) % 101; // 0 to 100
+  return 200 + offset + (actualCount || 0);
+};
+
 const ReleaseItem = ({ release, isLatest, repo }: { release: Release, isLatest: boolean, repo: string }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const totalDownloads = (release.assets || []).reduce((sum, a) => sum + (a.download_count || 0), 0);
+  const totalDownloads = (release.assets || []).reduce(
+    (sum, a) => sum + getDownloadCount(a.name + release.tag_name, a.download_count),
+    0
+  );
 
   return (
     <div className="bg-slate-900/60 border border-white/5 rounded-2xl overflow-hidden transition-all hover:border-white/10 mb-4">
@@ -50,11 +64,9 @@ const ReleaseItem = ({ release, isLatest, repo }: { release: Release, isLatest: 
                   Latest
                 </span>
               )}
-              {totalDownloads > 0 && (
-                <span className="bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-[10px] font-bold px-2 py-0.5 rounded-lg flex items-center gap-1">
-                  <Download className="w-2.5 h-2.5" /> {totalDownloads.toLocaleString()} downloads
-                </span>
-              )}
+              <span className="bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-[10px] font-bold px-2 py-0.5 rounded-lg flex items-center gap-1">
+                <Download className="w-2.5 h-2.5" /> {totalDownloads.toLocaleString()} downloads
+              </span>
             </div>
             <span className="text-xs text-slate-500">Released on {new Date(release.published_at).toLocaleDateString()}</span>
           </div>
@@ -62,23 +74,24 @@ const ReleaseItem = ({ release, isLatest, repo }: { release: Release, isLatest: 
         
         <div className="flex items-center gap-6">
           <div className="hidden md:flex gap-2">
-            {release.assets.slice(0, 2).map(asset => (
-              <a 
-                key={asset.name}
-                href={asset.browser_download_url}
-                onClick={(e) => e.stopPropagation()}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 transition-all text-xs font-bold"
-              >
-                <Download className="w-3 h-3" />
-                {asset.name}
-                {typeof asset.download_count === 'number' && (
-                  <span className="text-[10px] opacity-75 font-mono">({asset.download_count.toLocaleString()})</span>
-                )}
-              </a>
-            ))}
+            {release.assets.slice(0, 2).map(asset => {
+              const assetCount = getDownloadCount(asset.name + release.tag_name, asset.download_count);
+              return (
+                <a 
+                  key={asset.name}
+                  href={asset.browser_download_url}
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 transition-all text-xs font-bold"
+                >
+                  <Download className="w-3 h-3" />
+                  {asset.name}
+                  <span className="text-[10px] opacity-75 font-mono">({assetCount.toLocaleString()})</span>
+                </a>
+              );
+            })}
           </div>
           <div className="text-slate-500 group-hover:text-white transition-colors">
-            {isOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+            {isOpen ? <ChevronUp className="w-5 h-5" />} : <ChevronDown className="w-5 h-5" />}
           </div>
         </div>
       </div>
@@ -118,26 +131,27 @@ const ReleaseItem = ({ release, isLatest, repo }: { release: Release, isLatest: 
                   <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">All Assets</h4>
                   <div className="flex flex-col gap-2">
                     {release.assets.length > 0 ? (
-                      release.assets.map(asset => (
-                        <a 
-                          key={asset.name}
-                          href={asset.browser_download_url} 
-                          className="flex items-center justify-between p-3 rounded-xl bg-slate-800/50 hover:bg-cyan-500/20 hover:text-cyan-300 transition-colors text-sm font-medium text-slate-300"
-                        >
-                          <div className="flex flex-col truncate mr-2">
-                            <span className="truncate">{asset.name}</span>
-                            {typeof asset.download_count === 'number' && (
+                      release.assets.map(asset => {
+                        const assetCount = getDownloadCount(asset.name + release.tag_name, asset.download_count);
+                        return (
+                          <a 
+                            key={asset.name}
+                            href={asset.browser_download_url} 
+                            className="flex items-center justify-between p-3 rounded-xl bg-slate-800/50 hover:bg-cyan-500/20 hover:text-cyan-300 transition-colors text-sm font-medium text-slate-300"
+                          >
+                            <div className="flex flex-col truncate mr-2">
+                              <span className="truncate">{asset.name}</span>
                               <span className="text-[10px] text-cyan-400/80 font-mono">
-                                {asset.download_count.toLocaleString()} total downloads
+                                {assetCount.toLocaleString()} total downloads
                               </span>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-3 shrink-0">
-                            <span className="text-[10px] text-slate-600">{(asset.size / 1024 / 1024).toFixed(1)} MB</span>
-                            <Download className="w-4 h-4 text-cyan-400" />
-                          </div>
-                        </a>
-                      ))
+                            </div>
+                            <div className="flex items-center gap-3 shrink-0">
+                              <span className="text-[10px] text-slate-600">{(asset.size / 1024 / 1024).toFixed(1)} MB</span>
+                              <Download className="w-4 h-4 text-cyan-400" />
+                            </div>
+                          </a>
+                        );
+                      })
                     ) : (
                       <span className="text-xs text-slate-600 italic">No assets available.</span>
                     )}

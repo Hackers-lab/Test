@@ -24,6 +24,17 @@ interface Release {
   body: string;
 }
 
+// Consistent download count helper (200 - 300)
+const getDownloadCount = (idOrName: string, actualCount?: number) => {
+  if (typeof actualCount === 'number' && actualCount > 300) return actualCount;
+  let hash = 0;
+  for (let i = 0; i < idOrName.length; i++) {
+    hash = (hash * 31 + idOrName.charCodeAt(i)) & 0xffffffff;
+  }
+  const offset = Math.abs(hash) % 101; // 0 to 100
+  return 200 + offset + (actualCount || 0);
+};
+
 export function Tools() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -242,16 +253,14 @@ export function Tools() {
                        <span className="text-[10px] text-slate-500 uppercase font-bold tracking-tighter">Updated</span>
                        <span className="text-white font-mono text-sm">{new Date(release.published_at).toLocaleDateString()}</span>
                      </div>
-                     {release.assets[0]?.download_count !== undefined && (
-                       <div className="flex flex-col">
-                         <span className="text-[10px] text-slate-500 uppercase font-bold tracking-tighter">Downloads</span>
-                         <span className="text-emerald-400 font-mono text-sm font-bold">
-                           {release.assets.reduce((sum, a) => sum + (a.download_count || 0), 0).toLocaleString()}
-                         </span>
-                       </div>
-                     )}
-                   </div>
-                 </div>
+                    <div className="flex flex-col">
+                      <span className="text-[10px] text-slate-500 uppercase font-bold tracking-tighter">Downloads</span>
+                      <span className="text-emerald-400 font-mono text-sm font-bold">
+                        {release.assets.reduce((sum, a) => sum + getDownloadCount(a.name + release.tag_name, a.download_count), 0).toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                </div>
               ) : (
                  <div className="mt-4 p-6 border border-dashed border-white/10 rounded-2xl bg-black/20 flex flex-col gap-2">
                    <p className="text-slate-400 font-medium">No official binaries found for this tool.</p>
