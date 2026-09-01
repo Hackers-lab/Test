@@ -91,7 +91,7 @@ const ReleaseItem = ({ release, isLatest, repo }: { release: Release, isLatest: 
             })}
           </div>
           <div className="text-slate-500 group-hover:text-white transition-colors">
-            {isOpen ? <ChevronUp className="w-5 h-5" />} : <ChevronDown className="w-5 h-5" />}
+            {isOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
           </div>
         </div>
       </div>
