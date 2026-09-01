@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Star, MessageSquare, Send, ThumbsUp, CheckCircle, Loader2, Sparkles } from 'lucide-react';
 import { collection, query, where, orderBy, onSnapshot, addDoc, doc, setDoc } from 'firebase/firestore';
 import { db, auth } from '../lib/firebase';
@@ -108,7 +108,7 @@ export function FeedbackWidget({ toolId, toolTitle }: FeedbackWidgetProps) {
               {[1, 2, 3, 4, 5].map((star) => (
                 <Star
                   key={star}
-                  className={w-4 h-4 }
+                  className={`w-4 h-4 ${star <= Math.round(Number(avgRating)) ? 'fill-amber-400 text-amber-400' : 'text-slate-600'}`}
                 />
               ))}
             </div>
@@ -141,7 +141,9 @@ export function FeedbackWidget({ toolId, toolTitle }: FeedbackWidgetProps) {
                   onMouseEnter={() => setHoverRating(s)}
                   onMouseLeave={() => setHoverRating(0)}
                   onClick={() => setRating(s)}
-                  className={w-6 h-6 transition-all }
+                  className={`w-6 h-6 transition-all ${
+                    s <= (hoverRating || rating) ? 'text-amber-400 fill-amber-400 scale-110' : 'text-slate-600'
+                  }`}
                 />
               ))}
             </div>
@@ -210,7 +212,7 @@ export function FeedbackWidget({ toolId, toolTitle }: FeedbackWidgetProps) {
                     {[1, 2, 3, 4, 5].map((s) => (
                       <Star
                         key={s}
-                        className={w-3 h-3 }
+                        className={`w-3 h-3 ${s <= fb.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-700'}`}
                       />
                     ))}
                   </div>
@@ -227,3 +229,4 @@ export function FeedbackWidget({ toolId, toolTitle }: FeedbackWidgetProps) {
     </div>
   );
 }
+
