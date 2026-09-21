@@ -8,6 +8,7 @@ import remarkGfm from 'remark-gfm';
 import { collection, query, getDocs } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { FeedbackWidget } from '../components/FeedbackWidget';
+import { maskWbsedcl } from '../lib/censor';
 
 interface Asset {
   name: string;
@@ -58,7 +59,7 @@ const ReleaseItem = ({ release, isLatest, repo }: { release: Release, isLatest: 
         <div className="flex items-center gap-4">
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
-              <h3 className="text-xl font-black text-white">{release.tag_name}</h3>
+              <h3 className="text-xl font-black text-white">{maskWbsedcl(release.tag_name)}</h3>
               {isLatest && (
                 <span className="bg-green-500/20 text-green-400 text-[10px] font-bold px-2 py-0.5 rounded-lg uppercase tracking-wider">
                   Latest
@@ -79,12 +80,12 @@ const ReleaseItem = ({ release, isLatest, repo }: { release: Release, isLatest: 
               return (
                 <a 
                   key={asset.name}
-                  href={asset.browser_download_url}
+                  href={asset.browser_download_url} 
                   onClick={(e) => e.stopPropagation()}
                   className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 transition-all text-xs font-bold"
                 >
                   <Download className="w-3 h-3" />
-                  {asset.name}
+                  {maskWbsedcl(asset.name)}
                   <span className="text-[10px] opacity-75 font-mono">({assetCount.toLocaleString()})</span>
                 </a>
               );
@@ -122,7 +123,7 @@ const ReleaseItem = ({ release, isLatest, repo }: { release: Release, isLatest: 
                         return uri;
                       }}
                     >
-                      {release.body || "_No detailed release notes provided._"}
+                      {maskWbsedcl(release.body) || "_No detailed release notes provided._"}
                     </ReactMarkdown>
                   </div>
                 </div>
@@ -140,7 +141,7 @@ const ReleaseItem = ({ release, isLatest, repo }: { release: Release, isLatest: 
                             className="flex items-center justify-between p-3 rounded-xl bg-slate-800/50 hover:bg-cyan-500/20 hover:text-cyan-300 transition-colors text-sm font-medium text-slate-300"
                           >
                             <div className="flex flex-col truncate mr-2">
-                              <span className="truncate">{asset.name}</span>
+                              <span className="truncate">{maskWbsedcl(asset.name)}</span>
                               <span className="text-[10px] text-cyan-400/80 font-mono">
                                 {assetCount.toLocaleString()} total downloads
                               </span>
@@ -224,7 +225,7 @@ export function Downloads() {
         <div className="text-center relative py-12">
           <h1 className="text-4xl md:text-5xl font-black text-white mb-4 tracking-tight">Downloads Center</h1>
           <p className="text-lg text-slate-400 max-w-2xl mx-auto">
-            Browse official releases and older versions of Wbsedcl tools fetched directly from our source repositories.
+            Browse official releases and older versions of tools fetched directly from our source repositories.
           </p>
         </div>
 
@@ -252,7 +253,7 @@ export function Downloads() {
                   <div className="p-3 rounded-2xl bg-cyan-500/10 border border-cyan-500/20">
                     <FileBox className="w-6 h-6 text-cyan-400" />
                   </div>
-                  <h2 className="text-3xl font-black text-white tracking-tight">{app.title}</h2>
+                  <h2 className="text-3xl font-black text-white tracking-tight">{maskWbsedcl(app.title)}</h2>
                 </div>
 
                 {app.releases.length === 0 ? (
@@ -269,7 +270,7 @@ export function Downloads() {
                 )}
 
                 <div className="mt-4">
-                  <FeedbackWidget toolId={app.repo.replace('/', '_')} toolTitle={app.title} />
+                  <FeedbackWidget toolId={app.repo.replace('/', '_')} toolTitle={maskWbsedcl(app.title)} />
                 </div>
               </motion.div>
             ))}

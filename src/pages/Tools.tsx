@@ -8,6 +8,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { collection, query, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { FeedbackWidget } from '../components/FeedbackWidget';
+import { maskWbsedcl } from '../lib/censor';
 
 interface ReleaseAsset {
   name: string;
@@ -154,7 +155,7 @@ export function Tools() {
         } catch (e) {
            // Silently ignore if failed
         }
-        setReadme(readmeText);
+        setReadme(maskWbsedcl(readmeText));
         setReadmeBaseUrl(baseReadmeUrl);
 
         // Try to extract YouTube URL from README or Release Body
@@ -197,7 +198,7 @@ export function Tools() {
                     }}
                     className={`text-left px-4 py-3 rounded-xl text-sm font-bold transition-all ${selectedRepoSlug === repo.repoName ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'text-slate-400 hover:bg-slate-800 hover:text-white border border-transparent'}`}
                  >
-                    {repo.title}
+                    {maskWbsedcl(repo.title)}
                  </button>
                ))}
              </div>
@@ -234,20 +235,20 @@ export function Tools() {
               </div>
               
               <h1 className="text-4xl font-black text-white mb-2 leading-tight">
-                {repos.find(r => r.repoName === selectedRepoSlug)?.title || selectedRepoSlug.split('/').pop()}
+                {maskWbsedcl(repos.find(r => r.repoName === selectedRepoSlug)?.title || selectedRepoSlug.split('/').pop())}
               </h1>
               
               {release ? (
                  <div className="mt-8 flex flex-col sm:flex-row gap-4 items-start sm:items-center">
                    {release.assets.slice(0,1).map(asset => (
                      <a href={asset.browser_download_url} target="_blank" rel="noreferrer" key={asset.name} className="px-8 py-4 rounded-2xl bg-gradient-to-r from-cyan-600 to-blue-700 text-white font-bold text-sm shadow-[0_10px_25px_-5px_rgba(6,182,212,0.4)] hover:scale-105 active:scale-95 transition-all w-full sm:w-auto text-center flex items-center justify-center gap-2">
-                       <Download className="w-4 h-4" /> Download {asset.name}
+                       <Download className="w-4 h-4" /> Download {maskWbsedcl(asset.name)}
                      </a>
                    ))}
                    <div className="flex gap-6 mt-4 sm:mt-0 justify-center w-full sm:w-auto px-4">
                      <div className="flex flex-col">
                        <span className="text-[10px] text-slate-500 uppercase font-bold tracking-tighter">Version</span>
-                       <span className="text-cyan-400 font-mono text-sm">{release.tag_name}</span>
+                       <span className="text-cyan-400 font-mono text-sm">{maskWbsedcl(release.tag_name)}</span>
                      </div>
                      <div className="flex flex-col">
                        <span className="text-[10px] text-slate-500 uppercase font-bold tracking-tighter">Updated</span>
@@ -323,7 +324,7 @@ export function Tools() {
             {/* Feedback & Ratings Widget */}
             <FeedbackWidget 
               toolId={selectedRepoSlug.replace('/', '_')} 
-              toolTitle={repos.find(r => r.repoName === selectedRepoSlug)?.title || selectedRepoSlug.split('/').pop() || 'Tool'} 
+              toolTitle={maskWbsedcl(repos.find(r => r.repoName === selectedRepoSlug)?.title || selectedRepoSlug.split('/').pop() || 'Tool')} 
             />
 
           </motion.div>

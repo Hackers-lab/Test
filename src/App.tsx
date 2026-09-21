@@ -13,6 +13,7 @@ import { Settings } from "./pages/Settings";
 import logo from "./assets/logo.png";
 import { collection, query, onSnapshot } from 'firebase/firestore';
 import { db } from './lib/firebase';
+import { maskWbsedcl } from "./lib/censor";
 
 // Placeholder data for github releases
 interface Release {
@@ -74,11 +75,11 @@ const AppFeatureCard = ({ repoName, title, description, to, webAppUrl }: { repoN
       </div>
       
       <h2 className="text-3xl font-extrabold text-white mb-3">
-        {title}
+        {maskWbsedcl(title)}
       </h2>
       
       <p className="text-slate-400 text-lg mb-8 max-w-md flex-1">
-        {description}
+        {maskWbsedcl(description)}
       </p>
       
       <div className="mt-auto flex flex-col sm:flex-row sm:items-center gap-4">
@@ -206,21 +207,21 @@ const Home = () => {
             >
               <img 
                 src={logo} 
-                alt="WBSEDCL Logo" 
+                alt="Tools Logo" 
                 className="w-full h-full object-contain" 
                 referrerPolicy="no-referrer" 
                 onError={(e) => {
                   (e.target as HTMLImageElement).style.display = 'none';
                   const parent = (e.target as HTMLImageElement).parentElement;
                   if (parent) {
-                    parent.innerHTML = '<span class="text-xl font-black text-cyan-500">WT</span>';
+                    parent.innerHTML = '<span class="text-xl font-black text-cyan-500">T</span>';
                   }
                 }}
               />
             </motion.div>
             <div className="flex flex-col items-start text-left">
               <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-white tracking-tighter leading-none">
-                WBSEDCL <span className="text-cyan-400">TOOLS</span>
+                <span className="text-cyan-400">TOOLS</span>
               </h1>
               <p className="text-xs md:text-base text-slate-400 font-medium mt-0.5">Advanced Utility Solutions</p>
             </div>

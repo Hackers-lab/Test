@@ -32,7 +32,7 @@ async function startServer() {
     try {
       const headers: Record<string, string> = {
         'Accept': 'application/vnd.github.v3+json',
-        'User-Agent': 'WBSEDCL-Tools-App'
+        'User-Agent': 'Utility-Tools-App'
       };
 
       if (process.env.GITHUB_TOKEN) {

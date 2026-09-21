@@ -108,7 +108,7 @@ export function Forum() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-4xl font-extrabold text-white tracking-tight mb-2">Community Forum</h1>
-          <p className="text-slate-400">Join the discussion about Wbsedcl tools and the integrated ecosystem.</p>
+          <p className="text-slate-400">Join the discussion about tools and the integrated ecosystem.</p>
         </div>
         <div>
           {!user ? (

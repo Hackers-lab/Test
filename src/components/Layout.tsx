@@ -104,20 +104,20 @@ export function Layout() {
             <div className="w-10 h-10 rounded-full bg-slate-900 border border-white/10 p-1 overflow-hidden group-hover:border-cyan-500/50 transition-all shadow-[0_0_20px_rgba(6,182,212,0.15)] flex items-center justify-center">
               <img 
                 src={logo} 
-                alt="WBSEDCL Tools Logo" 
+                alt="Tools Logo" 
                 className="w-full h-full object-contain"
                 referrerPolicy="no-referrer"
                 onError={(e) => {
                   (e.target as HTMLImageElement).style.display = 'none';
                   const parent = (e.target as HTMLImageElement).parentElement;
                   if (parent) {
-                    parent.innerHTML = '<span class="text-xs font-black text-cyan-500">WT</span>';
+                    parent.innerHTML = '<span class="text-xs font-black text-cyan-500">T</span>';
                   }
                 }}
               />
             </div>
             <span className="text-xl font-black tracking-tighter text-white hidden sm:block">
-              WBSEDCL <span className="text-cyan-400">TOOLS</span>
+              <span className="text-cyan-400">TOOLS</span>
             </span>
           </Link>
         </div>
@@ -242,7 +242,7 @@ export function Layout() {
       {/* Footer */}
       <footer className="h-min md:h-12 border-t border-white/5 flex flex-col md:flex-row md:items-center justify-between px-4 md:px-8 bg-slate-950 py-4 md:py-0 shrink-0 gap-3 md:gap-0">
         <div className="text-[10px] text-slate-500 uppercase font-bold tracking-widest text-center md:text-left">
-          © {new Date().getFullYear()} WBSEDCL TOOLS INTEGRATED ECOSYSTEM
+          © {new Date().getFullYear()} TOOLS INTEGRATED ECOSYSTEM
         </div>
         <div className="flex flex-wrap items-center justify-center md:justify-end gap-3 sm:gap-6">
           {visitorCount !== null && (
