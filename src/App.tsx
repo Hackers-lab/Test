@@ -65,37 +65,37 @@ const AppFeatureCard = ({ repoName, title, description, to, webAppUrl }: { repoN
   }, [repoName]);
 
   return (
-    <div className="bg-slate-900/40 border border-white/5 rounded-3xl p-8 relative overflow-hidden flex flex-col shadow-2xl transition-transform hover:scale-[1.02]">
-      <div className="absolute -top-24 -right-24 w-64 h-64 bg-cyan-500/10 rounded-full blur-[80px]"></div>
+    <div className="bg-slate-900/40 border border-white/5 rounded-2xl p-5 md:p-6 relative overflow-hidden flex flex-col shadow-xl transition-all hover:scale-[1.01] hover:border-white/10">
+      <div className="absolute -top-24 -right-24 w-48 h-48 bg-cyan-500/10 rounded-full blur-[60px]"></div>
       
-      <div className="relative flex items-center gap-3 mb-4">
-        <div className="px-3 py-1 rounded-full bg-cyan-500/20 border border-cyan-500/30 text-[10px] uppercase tracking-widest font-bold text-cyan-400">
+      <div className="relative flex items-center gap-2 mb-3">
+        <span className="px-2.5 py-0.5 rounded-full bg-cyan-500/15 border border-cyan-500/25 text-[9px] uppercase tracking-widest font-bold text-cyan-400">
           Official Release
-        </div>
+        </span>
       </div>
       
-      <h2 className="text-3xl font-extrabold text-white mb-3">
+      <h2 className="text-xl md:text-2xl font-bold text-white mb-2 tracking-tight">
         {maskWbsedcl(title)}
       </h2>
       
-      <p className="text-slate-400 text-lg mb-8 max-w-md flex-1">
+      <p className="text-slate-400 text-xs md:text-sm mb-5 line-clamp-2 flex-1 leading-relaxed">
         {maskWbsedcl(description)}
       </p>
       
-      <div className="mt-auto flex flex-col sm:flex-row sm:items-center gap-4">
-        <Link to={to} className="px-6 py-3 rounded-2xl bg-gradient-to-r from-cyan-600 to-blue-700 text-white font-bold text-center shadow-[0_10px_25px_-5px_rgba(6,182,212,0.4)] hover:scale-105 active:scale-95 transition-all">
-          Explore App
-        </Link>
-        {webAppUrl && (
-          <a href={webAppUrl} target="_blank" rel="noopener noreferrer" className="px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-700 text-white font-bold text-center shadow-[0_10px_25px_-5px_rgba(16,185,129,0.4)] hover:scale-105 active:scale-95 transition-all">
-            Open Web App
-          </a>
-        )}
-        <div className="flex gap-4 items-center">
-          <div className="flex flex-col">
-            <span className="text-[10px] text-slate-500 uppercase font-bold tracking-tighter">Updated</span>
-            <span className="text-white font-mono text-sm">{release ? new Date(release.published_at).toLocaleDateString() : "--"}</span>
-          </div>
+      <div className="mt-auto flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-white/5">
+        <div className="flex items-center gap-2">
+          <Link to={to} className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-700 text-white font-bold text-xs shadow-md hover:scale-105 active:scale-95 transition-all">
+            Explore
+          </Link>
+          {webAppUrl && (
+            <a href={webAppUrl} target="_blank" rel="noopener noreferrer" className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 text-white font-bold text-xs shadow-md hover:scale-105 active:scale-95 transition-all">
+              Launch Web
+            </a>
+          )}
+        </div>
+        <div className="flex flex-col text-right">
+          <span className="text-[9px] text-slate-500 uppercase font-semibold">Updated</span>
+          <span className="text-slate-300 font-mono text-xs">{release ? new Date(release.published_at).toLocaleDateString() : "--"}</span>
         </div>
       </div>
     </div>
@@ -104,44 +104,42 @@ const AppFeatureCard = ({ repoName, title, description, to, webAppUrl }: { repoN
 
 const DisconnectionWebCard = () => (
   <motion.div
-    initial={{ opacity: 0, y: 16 }}
+    initial={{ opacity: 0, y: 12 }}
     animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.4, delay: 0.05 }}
-    className="relative overflow-hidden rounded-3xl border border-rose-500/30 bg-gradient-to-br from-rose-950/60 via-slate-900/80 to-amber-950/40 shadow-2xl p-8 flex flex-col md:flex-row md:items-center gap-6"
+    transition={{ duration: 0.3, delay: 0.05 }}
+    className="relative overflow-hidden rounded-2xl border border-rose-500/30 bg-gradient-to-br from-rose-950/50 via-slate-900/80 to-amber-950/30 shadow-xl p-5 md:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
   >
     {/* glow blobs */}
-    <div className="absolute -top-16 -left-16 w-64 h-64 bg-rose-500/15 rounded-full blur-[80px] pointer-events-none" />
-    <div className="absolute -bottom-16 -right-16 w-64 h-64 bg-amber-500/10 rounded-full blur-[80px] pointer-events-none" />
+    <div className="absolute -top-16 -left-16 w-48 h-48 bg-rose-500/10 rounded-full blur-[60px] pointer-events-none" />
 
-    {/* icon */}
-    <div className="relative shrink-0 w-16 h-16 rounded-2xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center shadow-lg">
-      <PowerOff className="w-8 h-8 text-rose-400" />
-    </div>
-
-    {/* text */}
-    <div className="relative flex-1 min-w-0">
-      <div className="flex items-center gap-2 mb-2">
-        <span className="px-2.5 py-0.5 rounded-full bg-rose-500/20 border border-rose-500/30 text-[10px] uppercase tracking-widest font-bold text-rose-400">
-          Cloud Web App · Live
-        </span>
+    <div className="flex items-start sm:items-center gap-4 min-w-0">
+      <div className="shrink-0 w-11 h-11 rounded-xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center">
+        <PowerOff className="w-5 h-5 text-rose-400" />
       </div>
-      <h2 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight mb-1">
-        Disconnection <span className="text-rose-400">Management</span>
-      </h2>
-      <p className="text-slate-400 text-sm md:text-base max-w-xl">
-        Automated workflow solution to manage consumer disconnections, track status, generate notices, and streamline field execution directly in your browser.
-      </p>
+
+      <div className="min-w-0">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="px-2 py-0.5 rounded-full bg-rose-500/20 border border-rose-500/30 text-[9px] uppercase tracking-widest font-bold text-rose-400">
+            Cloud Web App
+          </span>
+        </div>
+        <h2 className="text-lg md:text-xl font-bold text-white tracking-tight">
+          Disconnection <span className="text-rose-400">Management</span>
+        </h2>
+        <p className="text-slate-400 text-xs md:text-sm line-clamp-1 max-w-xl">
+          Automated workflow to track consumer status, notices, and field execution.
+        </p>
+      </div>
     </div>
 
-    {/* button */}
-    <div className="relative shrink-0">
+    <div className="shrink-0 pt-2 sm:pt-0">
       <a
         href="https://disconnection.vercel.app"
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex items-center gap-2 px-7 py-3.5 rounded-2xl bg-gradient-to-r from-rose-500 to-amber-600 text-white font-bold text-base shadow-[0_10px_30px_-5px_rgba(244,63,94,0.4)] hover:scale-105 active:scale-95 transition-all whitespace-nowrap"
+        className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-amber-600 text-white font-bold text-xs shadow-md hover:scale-105 active:scale-95 transition-all whitespace-nowrap"
       >
-        Open App <ExternalLink className="w-4 h-4" />
+        Open App <ExternalLink className="w-3.5 h-3.5" />
       </a>
     </div>
   </motion.div>
@@ -149,44 +147,42 @@ const DisconnectionWebCard = () => (
 
 const EstimatorWebCard = () => (
   <motion.div
-    initial={{ opacity: 0, y: 16 }}
+    initial={{ opacity: 0, y: 12 }}
     animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.4, delay: 0.1 }}
-    className="relative overflow-hidden rounded-3xl border border-emerald-500/30 bg-gradient-to-br from-emerald-950/60 via-slate-900/80 to-teal-950/60 shadow-2xl p-8 flex flex-col md:flex-row md:items-center gap-6"
+    transition={{ duration: 0.3, delay: 0.1 }}
+    className="relative overflow-hidden rounded-2xl border border-emerald-500/30 bg-gradient-to-br from-emerald-950/50 via-slate-900/80 to-teal-950/40 shadow-xl p-5 md:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
   >
     {/* glow blobs */}
-    <div className="absolute -top-16 -left-16 w-64 h-64 bg-emerald-500/15 rounded-full blur-[80px] pointer-events-none" />
-    <div className="absolute -bottom-16 -right-16 w-64 h-64 bg-teal-500/10 rounded-full blur-[80px] pointer-events-none" />
+    <div className="absolute -top-16 -left-16 w-48 h-48 bg-emerald-500/10 rounded-full blur-[60px] pointer-events-none" />
 
-    {/* icon */}
-    <div className="relative shrink-0 w-16 h-16 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center shadow-lg">
-      <Zap className="w-8 h-8 text-emerald-400" />
-    </div>
-
-    {/* text */}
-    <div className="relative flex-1 min-w-0">
-      <div className="flex items-center gap-2 mb-2">
-        <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-[10px] uppercase tracking-widest font-bold text-emerald-400">
-          Web App · Live
-        </span>
+    <div className="flex items-start sm:items-center gap-4 min-w-0">
+      <div className="shrink-0 w-11 h-11 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center">
+        <Zap className="w-5 h-5 text-emerald-400" />
       </div>
-      <h2 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight mb-1">
-        ERP Field Companion — <span className="text-emerald-400">Estimator</span>
-      </h2>
-      <p className="text-slate-400 text-sm md:text-base max-w-xl">
-        Draw LT/HT electrical lines on an interactive canvas and instantly generate itemised estimates. Export drawings and bills to PDF or Excel — runs entirely in your browser, no install needed.
-      </p>
+
+      <div className="min-w-0">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-[9px] uppercase tracking-widest font-bold text-emerald-400">
+            Interactive Tool
+          </span>
+        </div>
+        <h2 className="text-lg md:text-xl font-bold text-white tracking-tight">
+          ERP Field Companion — <span className="text-emerald-400">Estimator</span>
+        </h2>
+        <p className="text-slate-400 text-xs md:text-sm line-clamp-1 max-w-xl">
+          Draw LT/HT electrical lines on canvas, generate itemised estimates & export PDF/Excel.
+        </p>
+      </div>
     </div>
 
-    {/* button */}
-    <div className="relative shrink-0">
+    <div className="shrink-0 pt-2 sm:pt-0">
       <a
         href="/estimator/"
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex items-center gap-2 px-7 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold text-base shadow-[0_10px_30px_-5px_rgba(16,185,129,0.5)] hover:scale-105 active:scale-95 transition-all whitespace-nowrap"
+        className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold text-xs shadow-md hover:scale-105 active:scale-95 transition-all whitespace-nowrap"
       >
-        Open Estimator <ExternalLink className="w-4 h-4" />
+        Open Estimator <ExternalLink className="w-3.5 h-3.5" />
       </a>
     </div>
   </motion.div>
@@ -241,14 +237,14 @@ const Home = () => {
     <PageTransition>
       <div className="p-4 md:p-8 max-w-7xl mx-auto h-full flex flex-col">
         {/* Header Setup */}
-        <div className="py-6 md:py-10 text-center relative flex flex-col items-center">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[200px] bg-cyan-500/5 rounded-full blur-[100px] -z-10 pointer-events-none"></div>
+        <div className="py-4 md:py-6 text-center relative flex flex-col items-center">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[150px] bg-cyan-500/5 rounded-full blur-[90px] -z-10 pointer-events-none"></div>
           
-          <div className="flex flex-row items-center justify-center gap-4 md:gap-6">
+          <div className="flex flex-row items-center justify-center gap-3 md:gap-5">
             <motion.div 
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              className="w-14 h-14 md:w-20 md:h-20 rounded-full bg-slate-900 border border-white/10 p-1 overflow-hidden shadow-[0_0_30px_rgba(6,182,212,0.2)] shrink-0 flex items-center justify-center"
+              className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-slate-900 border border-white/10 p-1 overflow-hidden shadow-[0_0_30px_rgba(6,182,212,0.2)] shrink-0 flex items-center justify-center"
             >
               <img 
                 src={logo} 
@@ -259,16 +255,16 @@ const Home = () => {
                   (e.target as HTMLImageElement).style.display = 'none';
                   const parent = (e.target as HTMLImageElement).parentElement;
                   if (parent) {
-                    parent.innerHTML = '<span class="text-xl font-black text-cyan-500">T</span>';
+                    parent.innerHTML = '<span class="text-lg font-black text-cyan-500">WB</span>';
                   }
                 }}
               />
             </motion.div>
             <div className="flex flex-col items-start text-left">
-              <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-white tracking-tighter leading-none">
-                <span className="text-cyan-400">TOOLS</span>
+              <h1 className="text-2xl md:text-4xl lg:text-5xl font-black text-white tracking-tighter leading-none">
+                WB<span className="text-cyan-400">TOOLS</span>
               </h1>
-              <p className="text-xs md:text-base text-slate-400 font-medium mt-0.5">Advanced Utility Solutions</p>
+              <p className="text-xs md:text-sm text-slate-400 font-medium mt-0.5">Advanced Utility Solutions</p>
             </div>
           </div>
         </div>
@@ -280,7 +276,7 @@ const Home = () => {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-2 mb-4">
               {repos.map((repo) => (
                 <AppFeatureCard
                   key={repo.id}
@@ -292,7 +288,7 @@ const Home = () => {
                 />
               ))}
             </div>
-            <div className="flex flex-col gap-6 mb-10">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
               <DisconnectionWebCard />
               <EstimatorWebCard />
             </div>

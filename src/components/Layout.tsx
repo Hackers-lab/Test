@@ -19,7 +19,6 @@ const navItems = [
 
 export function Layout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [showWhatsApp, setShowWhatsApp] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [visitorCount, setVisitorCount] = useState<number | null>(null);
   const location = useLocation();
@@ -33,70 +32,13 @@ export function Layout() {
   }, []);
 
   useEffect(() => {
-    const hasInteracted = localStorage.getItem("whatsapp_joined");
-    if (!hasInteracted) {
-      const timer = setTimeout(() => setShowWhatsApp(true), 2000);
-      return () => clearTimeout(timer);
-    }
-  }, []);
-
-  useEffect(() => {
     return onAuthStateChanged(auth, (user) => {
       setUserEmail(user?.email || null);
     });
   }, []);
 
-  const handleWhatsAppClick = () => {
-    localStorage.setItem("whatsapp_joined", "true");
-    setShowWhatsApp(false);
-  };
-
   return (
     <div className="min-h-screen bg-[#02040a] text-slate-200 font-sans selection:bg-cyan-500 selection:text-white flex flex-col overflow-x-hidden">
-      {/* WhatsApp Popup */}
-      <AnimatePresence>
-        {showWhatsApp && (
-          <motion.div
-            initial={{ opacity: 0, y: 100, scale: 0.8 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.5 }}
-            className="fixed bottom-6 right-6 z-[100] max-w-[300px] w-full"
-          >
-            <div className="bg-[#121b22] border border-green-500/30 rounded-2xl p-5 shadow-[0_20px_50px_rgba(34,197,94,0.15)] relative overflow-hidden group">
-              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button 
-                  onClick={() => setShowWhatsApp(false)}
-                  className="text-slate-500 hover:text-white"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-              
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-green-500/20 text-green-400 flex items-center justify-center shrink-0">
-                  <MessageSquare className="w-6 h-6" />
-                </div>
-                <div className="flex-1">
-                  <h4 className="text-sm font-bold text-white mb-1">Official Support</h4>
-                  <p className="text-[11px] text-slate-400 leading-relaxed mb-4">
-                    Join our WhatsApp community for real-time updates and direct tool support.
-                  </p>
-                  <a 
-                    href="https://chat.whatsapp.com/LZKLg40n8FxCLdnAIO9HGE"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={handleWhatsAppClick}
-                    className="inline-flex items-center justify-center w-full py-2.5 rounded-xl bg-green-600 hover:bg-green-500 text-white text-[11px] font-black uppercase tracking-widest transition-all shadow-lg"
-                  >
-                    Join the Group
-                  </a>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {/* Navigation */}
       <nav className="h-16 px-4 md:px-8 flex items-center justify-between border-b border-white/10 bg-slate-900/50 backdrop-blur-xl shrink-0 sticky top-0 z-50">
         <div className="flex items-center gap-4">
@@ -111,13 +53,13 @@ export function Layout() {
                   (e.target as HTMLImageElement).style.display = 'none';
                   const parent = (e.target as HTMLImageElement).parentElement;
                   if (parent) {
-                    parent.innerHTML = '<span class="text-xs font-black text-cyan-500">T</span>';
+                    parent.innerHTML = '<span class="text-xs font-black text-cyan-500">WB</span>';
                   }
                 }}
               />
             </div>
             <span className="text-xl font-black tracking-tighter text-white hidden sm:block">
-              <span className="text-cyan-400">TOOLS</span>
+              WB<span className="text-cyan-400">TOOLS</span>
             </span>
           </Link>
         </div>
@@ -242,7 +184,7 @@ export function Layout() {
       {/* Footer */}
       <footer className="h-min md:h-12 border-t border-white/5 flex flex-col md:flex-row md:items-center justify-between px-4 md:px-8 bg-slate-950 py-4 md:py-0 shrink-0 gap-3 md:gap-0">
         <div className="text-[10px] text-slate-500 uppercase font-bold tracking-widest text-center md:text-left">
-          © {new Date().getFullYear()} TOOLS INTEGRATED ECOSYSTEM
+          © {new Date().getFullYear()} WBTOOLS INTEGRATED ECOSYSTEM
         </div>
         <div className="flex flex-wrap items-center justify-center md:justify-end gap-3 sm:gap-6">
           {visitorCount !== null && (
