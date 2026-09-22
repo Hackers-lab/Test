@@ -38,9 +38,15 @@ export function Layout() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#02040a] text-slate-200 font-sans selection:bg-cyan-500 selection:text-white flex flex-col overflow-x-hidden">
+    <div className="min-h-screen bg-[#02040a] text-slate-200 font-sans selection:bg-cyan-500 selection:text-white flex flex-col overflow-x-hidden relative">
+      {/* Dynamic Ambient Background Elements */}
+      <div className="fixed inset-0 bg-cyber-grid opacity-60 pointer-events-none -z-10" />
+      <div className="fixed -top-40 -left-40 w-96 h-96 bg-cyan-500/10 rounded-full blur-[140px] pointer-events-none -z-10 animate-pulse-slow" />
+      <div className="fixed top-1/3 -right-40 w-96 h-96 bg-purple-600/10 rounded-full blur-[160px] pointer-events-none -z-10 animate-pulse-slow" style={{ animationDelay: '4s' }} />
+      <div className="fixed -bottom-40 left-1/3 w-96 h-96 bg-blue-600/10 rounded-full blur-[140px] pointer-events-none -z-10 animate-pulse-slow" style={{ animationDelay: '2s' }} />
+
       {/* Navigation */}
-      <nav className="h-16 px-4 md:px-8 flex items-center justify-between border-b border-white/10 bg-slate-900/50 backdrop-blur-xl shrink-0 sticky top-0 z-50">
+      <nav className="h-16 px-4 md:px-8 flex items-center justify-between border-b border-white/10 bg-[#02040a]/75 backdrop-blur-2xl shrink-0 sticky top-0 z-50">
         <div className="flex items-center gap-4">
           <Link to="/" className="flex items-center gap-3 group">
             <div className="w-10 h-10 rounded-full bg-slate-900 border border-white/10 p-1 overflow-hidden group-hover:border-cyan-500/50 transition-all shadow-[0_0_20px_rgba(6,182,212,0.15)] flex items-center justify-center">

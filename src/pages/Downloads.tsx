@@ -51,7 +51,7 @@ const ReleaseItem = ({ release, isLatest, repo }: { release: Release, isLatest: 
   );
 
   return (
-    <div className="bg-slate-900/60 border border-white/5 rounded-2xl overflow-hidden transition-all hover:border-white/10 mb-4">
+    <div className="glass-panel glass-panel-hover rounded-2xl overflow-hidden transition-all mb-4">
       <div 
         className="p-5 flex items-center justify-between cursor-pointer group"
         onClick={() => setIsOpen(!isOpen)}

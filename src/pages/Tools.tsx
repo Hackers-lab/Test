@@ -222,8 +222,8 @@ export function Tools() {
           <motion.div initial={{opacity:0, y:10}} animate={{opacity:1, y:0}} className="flex flex-col gap-6">
             
             {/* Release Header */}
-            <div className="bg-slate-900/40 border border-white/5 rounded-3xl p-8 relative overflow-hidden shadow-2xl">
-              <div className="absolute -top-24 -right-24 w-64 h-64 bg-cyan-500/10 rounded-full blur-[80px]"></div>
+            <div className="glass-panel rounded-3xl p-8 relative overflow-hidden shadow-2xl">
+              <div className="absolute -top-24 -right-24 w-64 h-64 bg-cyan-500/15 rounded-full blur-[80px] pointer-events-none"></div>
               
               <div className="relative flex items-center justify-between gap-4 mb-6">
                 <div className="flex items-center gap-3">

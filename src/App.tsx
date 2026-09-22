@@ -25,10 +25,10 @@ interface Release {
 
 export const PageTransition = ({ children }: { children: React.ReactNode }) => (
   <motion.div
-    initial={{ opacity: 0, y: 10 }}
-    animate={{ opacity: 1, y: 0 }}
-    exit={{ opacity: 0, y: -10 }}
-    transition={{ duration: 0.3 }}
+    initial={{ opacity: 0, y: 12, scale: 0.995 }}
+    animate={{ opacity: 1, y: 0, scale: 1 }}
+    exit={{ opacity: 0, y: -12, scale: 0.995 }}
+    transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
   >
     {children}
   </motion.div>
@@ -65,16 +65,27 @@ const AppFeatureCard = ({ repoName, title, description, to, webAppUrl }: { repoN
   }, [repoName]);
 
   return (
-    <div className="bg-slate-900/40 border border-white/5 rounded-2xl p-5 md:p-6 relative overflow-hidden flex flex-col shadow-xl transition-all hover:scale-[1.01] hover:border-white/10">
-      <div className="absolute -top-24 -right-24 w-48 h-48 bg-cyan-500/10 rounded-full blur-[60px]"></div>
+    <motion.div 
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="glass-panel glass-panel-hover rounded-2xl p-5 md:p-6 relative overflow-hidden flex flex-col group"
+    >
+      <div className="absolute -top-24 -right-24 w-52 h-52 bg-cyan-500/10 rounded-full blur-[70px] pointer-events-none group-hover:bg-cyan-500/20 transition-all duration-500"></div>
       
-      <div className="relative flex items-center gap-2 mb-3">
-        <span className="px-2.5 py-0.5 rounded-full bg-cyan-500/15 border border-cyan-500/25 text-[9px] uppercase tracking-widest font-bold text-cyan-400">
+      <div className="relative flex items-center justify-between gap-2 mb-3">
+        <span className="px-2.5 py-0.5 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-[9px] uppercase tracking-widest font-extrabold text-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.2)]">
           Official Release
         </span>
+        {release && (
+          <span className="flex items-center gap-1.5 text-[10px] text-emerald-400 font-mono font-semibold">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            Verified
+          </span>
+        )}
       </div>
       
-      <h2 className="text-xl md:text-2xl font-bold text-white mb-2 tracking-tight">
+      <h2 className="text-xl md:text-2xl font-black text-white mb-2 tracking-tight group-hover:text-cyan-200 transition-colors">
         {maskWbsedcl(title)}
       </h2>
       
@@ -84,12 +95,12 @@ const AppFeatureCard = ({ repoName, title, description, to, webAppUrl }: { repoN
       
       <div className="mt-auto flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-white/5">
         <div className="flex items-center gap-2">
-          <Link to={to} className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-700 text-white font-bold text-xs shadow-md hover:scale-105 active:scale-95 transition-all">
+          <Link to={to} className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-xs shadow-md shadow-cyan-500/20 hover:shadow-cyan-500/40 hover:scale-105 active:scale-95 transition-all">
             Explore
           </Link>
           {webAppUrl && (
-            <a href={webAppUrl} target="_blank" rel="noopener noreferrer" className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 text-white font-bold text-xs shadow-md hover:scale-105 active:scale-95 transition-all">
-              Launch Web
+            <a href={webAppUrl} target="_blank" rel="noopener noreferrer" className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold text-xs shadow-md shadow-emerald-500/20 hover:shadow-emerald-500/40 hover:scale-105 active:scale-95 transition-all flex items-center gap-1">
+              Launch Web <ExternalLink className="w-3 h-3" />
             </a>
           )}
         </div>
@@ -98,36 +109,36 @@ const AppFeatureCard = ({ repoName, title, description, to, webAppUrl }: { repoN
           <span className="text-slate-300 font-mono text-xs">{release ? new Date(release.published_at).toLocaleDateString() : "--"}</span>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
 const DisconnectionWebCard = () => (
   <motion.div
-    initial={{ opacity: 0, y: 12 }}
+    initial={{ opacity: 0, y: 15 }}
     animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.3, delay: 0.05 }}
-    className="relative overflow-hidden rounded-2xl border border-rose-500/30 bg-gradient-to-br from-rose-950/50 via-slate-900/80 to-amber-950/30 shadow-xl p-5 md:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+    transition={{ duration: 0.4, delay: 0.05 }}
+    className="glass-panel glass-panel-hover relative overflow-hidden rounded-2xl border border-rose-500/30 bg-gradient-to-br from-rose-950/40 via-slate-900/80 to-amber-950/25 p-5 md:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 group"
   >
     {/* glow blobs */}
-    <div className="absolute -top-16 -left-16 w-48 h-48 bg-rose-500/10 rounded-full blur-[60px] pointer-events-none" />
+    <div className="absolute -top-16 -left-16 w-52 h-52 bg-rose-500/15 rounded-full blur-[70px] pointer-events-none group-hover:bg-rose-500/25 transition-all duration-500" />
 
     <div className="flex items-start sm:items-center gap-4 min-w-0">
-      <div className="shrink-0 w-11 h-11 rounded-xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center">
-        <PowerOff className="w-5 h-5 text-rose-400" />
+      <div className="shrink-0 w-12 h-12 rounded-xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center shadow-[0_0_20px_rgba(244,63,94,0.25)] group-hover:scale-110 transition-transform">
+        <PowerOff className="w-6 h-6 text-rose-400" />
       </div>
 
       <div className="min-w-0">
         <div className="flex items-center gap-2 mb-1">
-          <span className="px-2 py-0.5 rounded-full bg-rose-500/20 border border-rose-500/30 text-[9px] uppercase tracking-widest font-bold text-rose-400">
-            Cloud Web App
+          <span className="px-2 py-0.5 rounded-full bg-rose-500/20 border border-rose-500/30 text-[9px] uppercase tracking-widest font-extrabold text-rose-300 shadow-[0_0_10px_rgba(244,63,94,0.2)]">
+            Cloud Web App · Live
           </span>
         </div>
-        <h2 className="text-lg md:text-xl font-bold text-white tracking-tight">
+        <h2 className="text-lg md:text-xl font-black text-white tracking-tight group-hover:text-rose-200 transition-colors">
           Disconnection <span className="text-rose-400">Management</span>
         </h2>
         <p className="text-slate-400 text-xs md:text-sm line-clamp-1 max-w-xl">
-          Automated workflow to track consumer status, notices, and field execution.
+          Automated workflow to track consumer status, notice delivery, and field execution in real time.
         </p>
       </div>
     </div>
@@ -137,9 +148,9 @@ const DisconnectionWebCard = () => (
         href="https://disconnection.vercel.app"
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-amber-600 text-white font-bold text-xs shadow-md hover:scale-105 active:scale-95 transition-all whitespace-nowrap"
+        className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-amber-600 text-white font-bold text-xs shadow-lg shadow-rose-500/30 hover:shadow-rose-500/50 hover:scale-105 active:scale-95 transition-all whitespace-nowrap"
       >
-        Open App <ExternalLink className="w-3.5 h-3.5" />
+        Launch App <ExternalLink className="w-3.5 h-3.5" />
       </a>
     </div>
   </motion.div>
@@ -147,26 +158,26 @@ const DisconnectionWebCard = () => (
 
 const EstimatorWebCard = () => (
   <motion.div
-    initial={{ opacity: 0, y: 12 }}
+    initial={{ opacity: 0, y: 15 }}
     animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.3, delay: 0.1 }}
-    className="relative overflow-hidden rounded-2xl border border-emerald-500/30 bg-gradient-to-br from-emerald-950/50 via-slate-900/80 to-teal-950/40 shadow-xl p-5 md:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+    transition={{ duration: 0.4, delay: 0.1 }}
+    className="glass-panel glass-panel-hover relative overflow-hidden rounded-2xl border border-emerald-500/30 bg-gradient-to-br from-emerald-950/40 via-slate-900/80 to-teal-950/30 p-5 md:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 group"
   >
     {/* glow blobs */}
-    <div className="absolute -top-16 -left-16 w-48 h-48 bg-emerald-500/10 rounded-full blur-[60px] pointer-events-none" />
+    <div className="absolute -top-16 -left-16 w-52 h-52 bg-emerald-500/15 rounded-full blur-[70px] pointer-events-none group-hover:bg-emerald-500/25 transition-all duration-500" />
 
     <div className="flex items-start sm:items-center gap-4 min-w-0">
-      <div className="shrink-0 w-11 h-11 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center">
-        <Zap className="w-5 h-5 text-emerald-400" />
+      <div className="shrink-0 w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center shadow-[0_0_20px_rgba(16,185,129,0.25)] group-hover:scale-110 transition-transform">
+        <Zap className="w-6 h-6 text-emerald-400" />
       </div>
 
       <div className="min-w-0">
         <div className="flex items-center gap-2 mb-1">
-          <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-[9px] uppercase tracking-widest font-bold text-emerald-400">
-            Interactive Tool
+          <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-[9px] uppercase tracking-widest font-extrabold text-emerald-300 shadow-[0_0_10px_rgba(16,185,129,0.2)]">
+            Interactive Tool · Live
           </span>
         </div>
-        <h2 className="text-lg md:text-xl font-bold text-white tracking-tight">
+        <h2 className="text-lg md:text-xl font-black text-white tracking-tight group-hover:text-emerald-200 transition-colors">
           ERP Field Companion — <span className="text-emerald-400">Estimator</span>
         </h2>
         <p className="text-slate-400 text-xs md:text-sm line-clamp-1 max-w-xl">
@@ -180,9 +191,9 @@ const EstimatorWebCard = () => (
         href="/estimator/"
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold text-xs shadow-md hover:scale-105 active:scale-95 transition-all whitespace-nowrap"
+        className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold text-xs shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-105 active:scale-95 transition-all whitespace-nowrap"
       >
-        Open Estimator <ExternalLink className="w-3.5 h-3.5" />
+        Launch Estimator <ExternalLink className="w-3.5 h-3.5" />
       </a>
     </div>
   </motion.div>

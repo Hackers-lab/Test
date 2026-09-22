@@ -31,8 +31,8 @@ export function Support() {
           
           {/* Quick Options */}
           <div className="flex flex-col gap-6">
-             <div className="bg-slate-900/60 border border-white/5 rounded-3xl p-8 hover:border-cyan-500/30 transition-all group">
-               <div className="w-12 h-12 bg-cyan-500/20 text-cyan-400 rounded-2xl flex items-center justify-center mb-6">
+             <div className="glass-panel glass-panel-hover rounded-3xl p-8 transition-all group">
+               <div className="w-12 h-12 bg-cyan-500/20 text-cyan-400 rounded-2xl flex items-center justify-center mb-6 shadow-[0_0_20px_rgba(6,182,212,0.25)]">
                  <MessageSquare className="w-6 h-6" />
                </div>
                <h2 className="text-2xl font-bold text-white mb-2">Community Forum</h2>
@@ -44,24 +44,23 @@ export function Support() {
                </Link>
              </div>
 
-
-             <div className="bg-slate-900/60 border border-white/5 rounded-3xl p-8 hover:border-cyan-500/30 transition-all group">
-               <div className="w-12 h-12 bg-purple-500/20 text-purple-400 rounded-2xl flex items-center justify-center mb-6">
+             <div className="glass-panel glass-panel-hover rounded-3xl p-8 transition-all group">
+               <div className="w-12 h-12 bg-purple-500/20 text-purple-400 rounded-2xl flex items-center justify-center mb-6 shadow-[0_0_20px_rgba(168,85,247,0.25)]">
                  <Mail className="w-6 h-6" />
                </div>
-               <h2 className="text-2xl font-bold text-white mb-2">Direct Mail</h2>
+               <h2 className="text-2xl font-bold text-white mb-2">Direct Inquiry</h2>
                <p className="text-slate-400 mb-6">
-                 For urgent inquiries, business proposals, or private support, you can reach out directly via email.
+                 For urgent inquiries, feature requests, or deployment feedback, send a direct message using our contact form.
                </p>
-               <a href="mailto:pramod.theroxtar@gmail.com" className="inline-flex items-center gap-2 text-purple-400 font-bold hover:text-purple-300 transition-colors">
-                 Send an Email <ExternalLink className="w-4 h-4" />
-               </a>
+               <span className="text-sm font-semibold text-purple-400">
+                 Average response time: &lt; 24 hours
+               </span>
              </div>
           </div>
 
           {/* Contact Form */}
-          <div className="bg-slate-900/40 border border-white/5 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
-             <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/5 rounded-bl-[100px] pointer-events-none"></div>
+          <div className="glass-panel rounded-3xl p-8 shadow-2xl relative overflow-hidden">
+             <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/10 rounded-bl-[100px] pointer-events-none blur-[60px]"></div>
              
              <h2 className="text-2xl font-bold text-white mb-6">Send us a message</h2>
              
