@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import { Layout } from "./components/Layout";
-import { Download, Monitor, Plus, BookOpen, Loader2, Zap, ExternalLink } from "lucide-react";
+import { Download, Monitor, Plus, BookOpen, Loader2, Zap, ExternalLink, PowerOff } from "lucide-react";
 import { fetchGithubApi } from "./lib/github";
 import { useState, useEffect } from "react";
 import { motion } from "motion/react";
@@ -101,6 +101,51 @@ const AppFeatureCard = ({ repoName, title, description, to, webAppUrl }: { repoN
     </div>
   );
 };
+
+const DisconnectionWebCard = () => (
+  <motion.div
+    initial={{ opacity: 0, y: 16 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.4, delay: 0.05 }}
+    className="relative overflow-hidden rounded-3xl border border-rose-500/30 bg-gradient-to-br from-rose-950/60 via-slate-900/80 to-amber-950/40 shadow-2xl p-8 flex flex-col md:flex-row md:items-center gap-6"
+  >
+    {/* glow blobs */}
+    <div className="absolute -top-16 -left-16 w-64 h-64 bg-rose-500/15 rounded-full blur-[80px] pointer-events-none" />
+    <div className="absolute -bottom-16 -right-16 w-64 h-64 bg-amber-500/10 rounded-full blur-[80px] pointer-events-none" />
+
+    {/* icon */}
+    <div className="relative shrink-0 w-16 h-16 rounded-2xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center shadow-lg">
+      <PowerOff className="w-8 h-8 text-rose-400" />
+    </div>
+
+    {/* text */}
+    <div className="relative flex-1 min-w-0">
+      <div className="flex items-center gap-2 mb-2">
+        <span className="px-2.5 py-0.5 rounded-full bg-rose-500/20 border border-rose-500/30 text-[10px] uppercase tracking-widest font-bold text-rose-400">
+          Cloud Web App · Live
+        </span>
+      </div>
+      <h2 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight mb-1">
+        Disconnection <span className="text-rose-400">Management</span>
+      </h2>
+      <p className="text-slate-400 text-sm md:text-base max-w-xl">
+        Automated workflow solution to manage consumer disconnections, track status, generate notices, and streamline field execution directly in your browser.
+      </p>
+    </div>
+
+    {/* button */}
+    <div className="relative shrink-0">
+      <a
+        href="https://disconnection.vercel.app"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-2 px-7 py-3.5 rounded-2xl bg-gradient-to-r from-rose-500 to-amber-600 text-white font-bold text-base shadow-[0_10px_30px_-5px_rgba(244,63,94,0.4)] hover:scale-105 active:scale-95 transition-all whitespace-nowrap"
+      >
+        Open App <ExternalLink className="w-4 h-4" />
+      </a>
+    </div>
+  </motion.div>
+);
 
 const EstimatorWebCard = () => (
   <motion.div
@@ -247,7 +292,8 @@ const Home = () => {
                 />
               ))}
             </div>
-            <div className="mb-10">
+            <div className="flex flex-col gap-6 mb-10">
+              <DisconnectionWebCard />
               <EstimatorWebCard />
             </div>
           </>
