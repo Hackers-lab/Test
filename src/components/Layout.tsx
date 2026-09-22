@@ -64,8 +64,8 @@ export function Layout() {
                 }}
               />
             </div>
-            <span className="text-xl font-black tracking-tighter text-white hidden sm:block">
-              WB<span className="text-cyan-400">TOOLS</span>
+            <span className="text-xl font-black tracking-tight text-white hidden sm:block">
+              WB<span className="bg-gradient-to-r from-cyan-400 to-indigo-400 bg-clip-text text-transparent">TOOLS</span>
             </span>
           </Link>
         </div>

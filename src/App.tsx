@@ -248,34 +248,37 @@ const Home = () => {
     <PageTransition>
       <div className="p-4 md:p-8 max-w-7xl mx-auto h-full flex flex-col">
         {/* Header Setup */}
-        <div className="py-4 md:py-6 text-center relative flex flex-col items-center">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[150px] bg-cyan-500/5 rounded-full blur-[90px] -z-10 pointer-events-none"></div>
+        <div className="py-5 md:py-8 text-center relative flex flex-col items-center">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[180px] bg-gradient-to-r from-cyan-500/15 via-purple-500/10 to-blue-500/15 rounded-full blur-[100px] -z-10 pointer-events-none"></div>
           
           <div className="flex flex-row items-center justify-center gap-3 md:gap-5">
             <motion.div 
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-slate-900 border border-white/10 p-1 overflow-hidden shadow-[0_0_30px_rgba(6,182,212,0.2)] shrink-0 flex items-center justify-center"
+              className="w-13 h-13 md:w-16 md:h-16 rounded-2xl bg-gradient-to-br from-cyan-500/20 via-slate-900 to-purple-600/20 border border-cyan-500/30 p-1.5 overflow-hidden shadow-[0_0_35px_rgba(6,182,212,0.3)] shrink-0 flex items-center justify-center backdrop-blur-md"
             >
               <img 
                 src={logo} 
                 alt="Tools Logo" 
-                className="w-full h-full object-contain" 
+                className="w-full h-full object-contain drop-shadow" 
                 referrerPolicy="no-referrer" 
                 onError={(e) => {
                   (e.target as HTMLImageElement).style.display = 'none';
                   const parent = (e.target as HTMLImageElement).parentElement;
                   if (parent) {
-                    parent.innerHTML = '<span class="text-lg font-black text-cyan-500">WB</span>';
+                    parent.innerHTML = '<span class="text-xl font-black bg-gradient-to-br from-cyan-400 to-purple-400 bg-clip-text text-transparent">WB</span>';
                   }
                 }}
               />
             </motion.div>
             <div className="flex flex-col items-start text-left">
-              <h1 className="text-2xl md:text-4xl lg:text-5xl font-black text-white tracking-tighter leading-none">
-                WB<span className="text-cyan-400">TOOLS</span>
+              <h1 className="text-2xl md:text-4xl lg:text-5xl font-black tracking-tight leading-none text-white">
+                WB<span className="bg-gradient-to-r from-cyan-400 via-sky-300 to-indigo-400 bg-clip-text text-transparent">TOOLS</span>
               </h1>
-              <p className="text-xs md:text-sm text-slate-400 font-medium mt-0.5">Advanced Utility Solutions</p>
+              <p className="text-xs md:text-sm text-slate-400 font-medium mt-1 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+                Next-Generation Field & Utility Workspace
+              </p>
             </div>
           </div>
         </div>
