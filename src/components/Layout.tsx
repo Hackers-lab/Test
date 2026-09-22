@@ -40,16 +40,19 @@ export function Layout() {
   return (
     <div className="min-h-screen bg-[#02040a] text-slate-200 font-sans selection:bg-cyan-500 selection:text-white flex flex-col overflow-x-hidden relative">
       {/* Dynamic Ambient Background Elements */}
-      <div className="fixed inset-0 bg-cyber-grid opacity-60 pointer-events-none -z-10" />
-      <div className="fixed -top-40 -left-40 w-96 h-96 bg-cyan-500/10 rounded-full blur-[140px] pointer-events-none -z-10 animate-pulse-slow" />
-      <div className="fixed top-1/3 -right-40 w-96 h-96 bg-purple-600/10 rounded-full blur-[160px] pointer-events-none -z-10 animate-pulse-slow" style={{ animationDelay: '4s' }} />
-      <div className="fixed -bottom-40 left-1/3 w-96 h-96 bg-blue-600/10 rounded-full blur-[140px] pointer-events-none -z-10 animate-pulse-slow" style={{ animationDelay: '2s' }} />
+      <div className="fixed inset-0 bg-cyber-grid opacity-75 pointer-events-none -z-10" />
+      
+      {/* Aurora Beams */}
+      <div className="fixed -top-[20vw] -left-[10vw] w-[50vw] h-[50vw] rounded-full bg-gradient-to-tr from-cyan-600/20 via-sky-500/15 to-transparent blur-[120px] pointer-events-none -z-10 animate-aurora" />
+      <div className="fixed top-[30vh] -right-[15vw] w-[55vw] h-[55vw] rounded-full bg-gradient-to-bl from-purple-600/20 via-pink-600/10 to-transparent blur-[140px] pointer-events-none -z-10 animate-aurora" style={{ animationDirection: 'reverse', animationDuration: '32s' }} />
+      <div className="fixed -bottom-[10vw] left-[20vw] w-[45vw] h-[45vw] rounded-full bg-gradient-to-t from-blue-600/15 via-indigo-600/10 to-transparent blur-[120px] pointer-events-none -z-10 animate-pulse-glow" />
 
       {/* Navigation */}
-      <nav className="h-16 px-4 md:px-8 flex items-center justify-between border-b border-white/10 bg-[#02040a]/75 backdrop-blur-2xl shrink-0 sticky top-0 z-50">
+      <nav className="h-16 px-4 md:px-8 flex items-center justify-between border-b border-white/10 bg-[#02040a]/80 backdrop-blur-2xl shrink-0 sticky top-0 z-50 shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
         <div className="flex items-center gap-4">
           <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-full bg-slate-900 border border-white/10 p-1 overflow-hidden group-hover:border-cyan-500/50 transition-all shadow-[0_0_20px_rgba(6,182,212,0.15)] flex items-center justify-center">
+            <div className="relative w-10 h-10 rounded-2xl bg-gradient-to-br from-cyan-500/25 via-slate-900 to-purple-600/25 border border-cyan-500/30 p-1 overflow-hidden group-hover:border-cyan-400/70 transition-all duration-300 shadow-[0_0_25px_rgba(6,182,212,0.25)] flex items-center justify-center group-hover:scale-105">
+              <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-purple-500 opacity-0 group-hover:opacity-20 transition-opacity" />
               <img 
                 src={logo} 
                 alt="Tools Logo" 

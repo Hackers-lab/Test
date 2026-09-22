@@ -1,4 +1,4 @@
-import { fetchGithubApi } from '../lib/github';
+import { fetchGithubApi, REAL_FALLBACK_RELEASES } from '../lib/github';
 import { useState, useEffect } from 'react';
 import { Download, AlertCircle, FileBox, ChevronDown, ChevronUp, History, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -192,49 +192,6 @@ export function Downloads() {
           );
         }
 
-        const fallbackData: Record<string, Release[]> = {
-          "Hackers-lab/spotimageviewer": [
-            {
-              id: 101,
-              name: "Spot Image Viewer v2.4.0 (Latest)",
-              tag_name: "v2.4.0",
-              published_at: "2026-03-15T00:00:00Z",
-              body: "### What's New in v2.4.0\n- High-speed consumer photo querying and verification.\n- Automated theft bill calculations and offline caching.\n- Multi-threaded thumbnail rendering engine.",
-              assets: [
-                {
-                  name: "SpotImageViewer-Setup-x64.exe",
-                  size: 48 * 1024 * 1024,
-                  browser_download_url: "https://github.com/Hackers-lab/spotimageviewer/releases/download/v2.4.0/SpotImageViewer-Setup-x64.exe",
-                  download_count: 268
-                },
-                {
-                  name: "SpotImageViewer-Portable.zip",
-                  size: 42 * 1024 * 1024,
-                  browser_download_url: "https://github.com/Hackers-lab/spotimageviewer/releases/download/v2.4.0/SpotImageViewer-Portable.zip",
-                  download_count: 242
-                }
-              ]
-            }
-          ],
-          "Hackers-lab/estimator": [
-            {
-              id: 102,
-              name: "Estimator Suite v1.8.0",
-              tag_name: "v1.8.0",
-              published_at: "2026-03-10T00:00:00Z",
-              body: "### Estimator Engine Update\n- Interactive LT/HT line rendering canvas.\n- Direct export to standard PDF and Excel estimates.\n- Enhanced DTR pole topology calculations.",
-              assets: [
-                {
-                  name: "Estimator-Desktop-Setup.exe",
-                  size: 55 * 1024 * 1024,
-                  browser_download_url: "https://github.com/Hackers-lab/estimator/releases/download/v1.8.0/Estimator-Desktop-Setup.exe",
-                  download_count: 285
-                }
-              ]
-            }
-          ]
-        };
-
         const results = await Promise.all(
           apps.map(async (app) => {
             try {
@@ -247,10 +204,10 @@ export function Downloads() {
                 }
               }
               
-              // Fallback to built-in verified binaries when API is rate-limited or unavailable
-              return { ...app, releases: fallbackData[app.repo] || [] };
+              // Fallback to verified official releases when API is rate-limited or unavailable
+              return { ...app, releases: REAL_FALLBACK_RELEASES[app.repo] || [] };
             } catch (e) {
-              return { ...app, releases: fallbackData[app.repo] || [] };
+              return { ...app, releases: REAL_FALLBACK_RELEASES[app.repo] || [] };
             }
           })
         );
@@ -294,11 +251,21 @@ export function Downloads() {
                 transition={{ delay: index * 0.1 }}
                 className="flex flex-col"
               >
-                <div className="flex items-center gap-4 mb-8">
-                  <div className="p-3 rounded-2xl bg-cyan-500/10 border border-cyan-500/20">
-                    <FileBox className="w-6 h-6 text-cyan-400" />
+                <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 rounded-2xl bg-cyan-500/10 border border-cyan-500/20">
+                      <FileBox className="w-6 h-6 text-cyan-400" />
+                    </div>
+                    <h2 className="text-3xl font-black text-white tracking-tight">{maskWbsedcl(app.title)}</h2>
                   </div>
-                  <h2 className="text-3xl font-black text-white tracking-tight">{maskWbsedcl(app.title)}</h2>
+                  <a 
+                    href={`https://github.com/${app.repo}/releases`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white/5 border border-white/10 hover:border-cyan-500/30 hover:bg-cyan-500/10 text-slate-300 hover:text-cyan-300 text-xs font-semibold transition-all"
+                  >
+                    View on GitHub <Download className="w-3 h-3" />
+                  </a>
                 </div>
 
                 {app.releases.length === 0 ? (

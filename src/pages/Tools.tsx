@@ -1,4 +1,4 @@
-import { fetchGithubApi } from '../lib/github';
+import { fetchGithubApi, REAL_FALLBACK_RELEASES } from '../lib/github';
 import { useState, useEffect } from 'react';
 import { Download, PlayCircle, BookOpen, AlertCircle, Loader2 } from 'lucide-react';
 import { motion } from 'motion/react';
@@ -107,36 +107,7 @@ export function Tools() {
         const repoName = selectedRepoSlug;
         
         let releaseBody = '';
-        const fallbackToolsData: Record<string, Release> = {
-          "Hackers-lab/spotimageviewer": {
-            name: "Spot Image Viewer v2.4.0",
-            tag_name: "v2.4.0",
-            published_at: "2026-03-15T00:00:00Z",
-            body: "### Spot Image Viewer Production Release\n- High-speed consumer photo query engine.\n- Automated theft bill calculator and photo preview.\n- Offline database caching.",
-            assets: [
-              {
-                name: "SpotImageViewer-Setup-x64.exe",
-                size: 48 * 1024 * 1024,
-                browser_download_url: "https://github.com/Hackers-lab/spotimageviewer/releases/download/v2.4.0/SpotImageViewer-Setup-x64.exe",
-                download_count: 268
-              }
-            ]
-          },
-          "Hackers-lab/estimator": {
-            name: "Estimator Suite v1.8.0",
-            tag_name: "v1.8.0",
-            published_at: "2026-03-10T00:00:00Z",
-            body: "### Estimator Engine\n- Interactive LT/HT line rendering canvas.\n- Direct export to PDF and Excel.\n- Full electrical hardware structure calculator.",
-            assets: [
-              {
-                name: "Estimator-Desktop-Setup.exe",
-                size: 55 * 1024 * 1024,
-                browser_download_url: "https://github.com/Hackers-lab/estimator/releases/download/v1.8.0/Estimator-Desktop-Setup.exe",
-                download_count: 285
-              }
-            ]
-          }
-        };
+        const fallbackRelease = REAL_FALLBACK_RELEASES[repoName]?.[0] || null;
 
         try {
           let relRes = await fetchGithubApi(`repos/${repoName}/releases/latest`);
@@ -147,8 +118,8 @@ export function Tools() {
                setRelease(relData);
                releaseBody = relData.body || '';
              } else {
-               setRelease(fallbackToolsData[repoName] || null);
-               releaseBody = fallbackToolsData[repoName]?.body || '';
+               setRelease(fallbackRelease);
+               releaseBody = fallbackRelease?.body || '';
              }
           } else {
              // Fallback to all releases
@@ -160,17 +131,17 @@ export function Tools() {
                   setRelease(listData[0]);
                   releaseBody = listData[0].body || '';
                 } else {
-                  setRelease(fallbackToolsData[repoName] || null);
-                  releaseBody = fallbackToolsData[repoName]?.body || '';
+                  setRelease(fallbackRelease);
+                  releaseBody = fallbackRelease?.body || '';
                 }
              } else {
-                setRelease(fallbackToolsData[repoName] || null);
-                releaseBody = fallbackToolsData[repoName]?.body || '';
+                setRelease(fallbackRelease);
+                releaseBody = fallbackRelease?.body || '';
              }
           }
         } catch (e) {
-          setRelease(fallbackToolsData[repoName] || null);
-          releaseBody = fallbackToolsData[repoName]?.body || '';
+          setRelease(fallbackRelease);
+          releaseBody = fallbackRelease?.body || '';
         }
 
         let readmeText = '';
