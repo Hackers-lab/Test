@@ -164,35 +164,21 @@ export function Tools() {
         let readmeText = '';
         let baseReadmeUrl = `https://raw.githubusercontent.com/Hackers-lab/releases/main/docs`;
         try {
-<<<<<<< Updated upstream
-          // Direct fetch from raw.githubusercontent.com which does not suffer from GitHub API 60 req/hr rate limits
-          const directRawRes = await fetch(`https://raw.githubusercontent.com/${repoName}/main/README.md`);
-          if (directRawRes.ok) {
-            readmeText = await directRawRes.text();
-          } else {
-            const masterRawRes = await fetch(`https://raw.githubusercontent.com/${repoName}/master/README.md`);
-            if (masterRawRes.ok) {
-              readmeText = await masterRawRes.text();
-              baseReadmeUrl = `https://raw.githubusercontent.com/${repoName}/master`;
-=======
           // Check docs in public releases repository first
           const docRes = await fetch(`https://raw.githubusercontent.com/Hackers-lab/releases/main/docs/${shortName}.md`);
           if (docRes.ok) {
             readmeText = await docRes.text();
           } else {
-            // Fallback to repo readme via GitHub API
-            const readmeMetaRes = await fetchGithubApi(`repos/${repoName}/readme`);
-            if (readmeMetaRes.ok) {
-              const readmeMeta = await readmeMetaRes.json();
-              const readmeRes = await fetch(readmeMeta.download_url);
-              if (readmeRes.ok) {
-                readmeText = await readmeRes.text();
-                const dUrl = new URL(readmeMeta.download_url);
-                const pathParts = dUrl.pathname.split('/');
-                pathParts.pop();
-                baseReadmeUrl = `${dUrl.origin}${pathParts.join('/')}`;
+            // Direct fetch fallback from main/master
+            const directRawRes = await fetch(`https://raw.githubusercontent.com/${repoName}/main/README.md`);
+            if (directRawRes.ok) {
+              readmeText = await directRawRes.text();
+            } else {
+              const masterRawRes = await fetch(`https://raw.githubusercontent.com/${repoName}/master/README.md`);
+              if (masterRawRes.ok) {
+                readmeText = await masterRawRes.text();
+                baseReadmeUrl = `https://raw.githubusercontent.com/${repoName}/master`;
               }
->>>>>>> Stashed changes
             }
           }
         } catch (e) {

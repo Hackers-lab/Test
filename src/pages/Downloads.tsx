@@ -238,7 +238,6 @@ export function Downloads() {
             } catch (e) {
               return { ...app, releases: REAL_FALLBACK_RELEASES[app.repo] || [] };
             }
-            }
 
             return { ...app, releases: [] };
           })

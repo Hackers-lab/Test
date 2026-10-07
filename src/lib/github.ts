@@ -125,7 +125,9 @@ export const fetchGithubApi = async (path: string): Promise<Response> => {
 
     if (res.ok) {
       const data = await res.json();
-      saveToCache(cacheKey, data);
+      if (data && !data.message && !data.error) {
+        saveToCache(cacheKey, data);
+      }
       return new Response(JSON.stringify(data), {
         status: 200,
         headers: { 'Content-Type': 'application/json' }
