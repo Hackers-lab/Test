@@ -192,11 +192,40 @@ export function Downloads() {
           );
         }
 
+        // Fetch all public releases from central distribution hub
+        let hubReleases: Release[] = [];
+        try {
+          const hubRes = await fetchGithubApi(`repos/Hackers-lab/releases/releases?per_page=100`);
+          if (hubRes.ok) {
+            const parsed = await hubRes.json();
+            if (Array.isArray(parsed)) {
+              hubReleases = parsed;
+            }
+          }
+        } catch (e) {
+          // ignore
+        }
+
         const results = await Promise.all(
           apps.map(async (app) => {
+            const shortName = (app.repo.split('/')[1] || '').toLowerCase();
+            
+            // Match releases starting with app short name (e.g. "spotimageviewer-v20.69")
+            const matchedReleases = hubReleases.filter(r => 
+              r.tag_name.toLowerCase().startsWith(shortName + '-')
+            ).map(r => ({
+              ...r,
+              // Clean tag_name for UI display (e.g. spotimageviewer-v20.69 -> v20.69)
+              tag_name: r.tag_name.replace(new RegExp(`^${shortName}-`, 'i'), '')
+            }));
+
+            if (matchedReleases.length > 0) {
+              return { ...app, releases: matchedReleases.slice(0, 10) };
+            }
+
+            // Fallback to legacy individual repo query (in case of local proxy with token)
             try {
               let res = await fetchGithubApi(`repos/${app.repo}/releases`);
-
               if (res.ok) {
                 const releases = await res.json();
                 if (Array.isArray(releases) && releases.length > 0) {
@@ -209,6 +238,9 @@ export function Downloads() {
             } catch (e) {
               return { ...app, releases: REAL_FALLBACK_RELEASES[app.repo] || [] };
             }
+            }
+
+            return { ...app, releases: [] };
           })
         );
         setData(results);

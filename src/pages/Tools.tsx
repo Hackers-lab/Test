@@ -105,39 +105,56 @@ export function Tools() {
       
       try {
         const repoName = selectedRepoSlug;
+        const shortName = (repoName.split('/')[1] || '').toLowerCase();
         
         let releaseBody = '';
         const fallbackRelease = REAL_FALLBACK_RELEASES[repoName]?.[0] || null;
 
         try {
-          let relRes = await fetchGithubApi(`repos/${repoName}/releases/latest`);
+          // First check public releases repository
+          let hubRes = await fetchGithubApi(`repos/Hackers-lab/releases/releases?per_page=100`);
+          let matchedRelease = null;
+          if (hubRes.ok) {
+            const allHub = await hubRes.json();
+            if (Array.isArray(allHub)) {
+              matchedRelease = allHub.find(r => r.tag_name.toLowerCase().startsWith(shortName + '-'));
+            }
+          }
 
-          if (relRes.ok) {
-             const relData = await relRes.json();
-             if (relData && relData.tag_name) {
-               setRelease(relData);
-               releaseBody = relData.body || '';
-             } else {
-               setRelease(fallbackRelease);
-               releaseBody = fallbackRelease?.body || '';
-             }
+          if (matchedRelease) {
+            setRelease({
+              ...matchedRelease,
+              tag_name: matchedRelease.tag_name.replace(new RegExp(`^${shortName}-`, 'i'), '')
+            });
+            releaseBody = matchedRelease.body || '';
           } else {
-             // Fallback to all releases
-             let listRes = await fetchGithubApi(`repos/${repoName}/releases`);
-             
-             if (listRes.ok) {
-                const listData = await listRes.json();
-                if (Array.isArray(listData) && listData.length > 0) {
-                  setRelease(listData[0]);
-                  releaseBody = listData[0].body || '';
-                } else {
+            // Fallback to individual repo
+            let relRes = await fetchGithubApi(`repos/${repoName}/releases/latest`);
+            if (relRes.ok) {
+               const relData = await relRes.json();
+               if (relData && relData.tag_name) {
+                 setRelease(relData);
+                 releaseBody = relData.body || '';
+               } else {
+                 setRelease(fallbackRelease);
+                 releaseBody = fallbackRelease?.body || '';
+               }
+            } else {
+               let listRes = await fetchGithubApi(`repos/${repoName}/releases`);
+               if (listRes.ok) {
+                  const listData = await listRes.json();
+                  if (Array.isArray(listData) && listData.length > 0) {
+                    setRelease(listData[0]);
+                    releaseBody = listData[0].body || '';
+                  } else {
+                    setRelease(fallbackRelease);
+                    releaseBody = fallbackRelease?.body || '';
+                  }
+               } else {
                   setRelease(fallbackRelease);
                   releaseBody = fallbackRelease?.body || '';
-                }
-             } else {
-                setRelease(fallbackRelease);
-                releaseBody = fallbackRelease?.body || '';
-             }
+               }
+            }
           }
         } catch (e) {
           setRelease(fallbackRelease);
@@ -145,8 +162,9 @@ export function Tools() {
         }
 
         let readmeText = '';
-        let baseReadmeUrl = `https://raw.githubusercontent.com/${repoName}/main`;
+        let baseReadmeUrl = `https://raw.githubusercontent.com/Hackers-lab/releases/main/docs`;
         try {
+<<<<<<< Updated upstream
           // Direct fetch from raw.githubusercontent.com which does not suffer from GitHub API 60 req/hr rate limits
           const directRawRes = await fetch(`https://raw.githubusercontent.com/${repoName}/main/README.md`);
           if (directRawRes.ok) {
@@ -156,6 +174,25 @@ export function Tools() {
             if (masterRawRes.ok) {
               readmeText = await masterRawRes.text();
               baseReadmeUrl = `https://raw.githubusercontent.com/${repoName}/master`;
+=======
+          // Check docs in public releases repository first
+          const docRes = await fetch(`https://raw.githubusercontent.com/Hackers-lab/releases/main/docs/${shortName}.md`);
+          if (docRes.ok) {
+            readmeText = await docRes.text();
+          } else {
+            // Fallback to repo readme via GitHub API
+            const readmeMetaRes = await fetchGithubApi(`repos/${repoName}/readme`);
+            if (readmeMetaRes.ok) {
+              const readmeMeta = await readmeMetaRes.json();
+              const readmeRes = await fetch(readmeMeta.download_url);
+              if (readmeRes.ok) {
+                readmeText = await readmeRes.text();
+                const dUrl = new URL(readmeMeta.download_url);
+                const pathParts = dUrl.pathname.split('/');
+                pathParts.pop();
+                baseReadmeUrl = `${dUrl.origin}${pathParts.join('/')}`;
+              }
+>>>>>>> Stashed changes
             }
           }
         } catch (e) {

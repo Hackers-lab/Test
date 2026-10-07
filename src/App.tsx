@@ -40,6 +40,19 @@ const AppFeatureCard = ({ repoName, title, description, to, webAppUrl }: { repoN
   useEffect(() => {
     const fetchReleaseInfo = async () => {
       try {
+        const shortName = (repoName.split('/')[1] || '').toLowerCase();
+        let hubRes = await fetchGithubApi(`repos/Hackers-lab/releases/releases?per_page=100`);
+        if (hubRes.ok) {
+          const allHub = await hubRes.json();
+          if (Array.isArray(allHub)) {
+            const matched = allHub.find(r => r.tag_name.toLowerCase().startsWith(shortName + '-'));
+            if (matched) {
+              setRelease(matched);
+              return;
+            }
+          }
+        }
+
         let res = await fetchGithubApi(`repos/${repoName}/releases/latest`);
         let data = null;
 
