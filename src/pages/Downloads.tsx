@@ -1,7 +1,8 @@
-import { fetchGithubApi, REAL_FALLBACK_RELEASES } from '../lib/github';
+import { fetchGithubApi, REAL_FALLBACK_RELEASES, getAssetDownloadUrl } from '../lib/github';
 import { useState, useEffect } from 'react';
-import { Download, AlertCircle, FileBox, ChevronDown, ChevronUp, History, Loader2 } from 'lucide-react';
+import { Download, AlertCircle, FileBox, ChevronDown, ChevronUp, History, Loader2, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { Link } from 'react-router-dom';
 import { PageTransition } from '../App';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -32,18 +33,20 @@ interface AppReleases {
   releases: Release[];
 }
 
-// Helper to generate consistent download count between 200 and 300 per item
-const getDownloadCount = (idOrName: string, actualCount?: number) => {
-  if (typeof actualCount === 'number' && actualCount > 300) return actualCount;
-  let hash = 0;
-  for (let i = 0; i < idOrName.length; i++) {
-    hash = (hash * 31 + idOrName.charCodeAt(i)) & 0xffffffff;
-  }
-  const offset = Math.abs(hash) % 101; // 0 to 100
-  return 200 + offset + (actualCount || 0);
+// Exact download count from release asset data
+const getDownloadCount = (_idOrName: string, actualCount?: number) => {
+  return typeof actualCount === 'number' ? actualCount : 0;
 };
 
-const ReleaseItem = ({ release, isLatest, repo }: { release: Release, isLatest: boolean, repo: string }) => {
+const ReleaseItem = ({
+  release,
+  isLatest,
+  repo,
+}: {
+  release: Release;
+  isLatest: boolean;
+  repo: string;
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   const totalDownloads = (release.assets || []).reduce(
     (sum, a) => sum + getDownloadCount(a.name + release.tag_name, a.download_count),
@@ -51,47 +54,65 @@ const ReleaseItem = ({ release, isLatest, repo }: { release: Release, isLatest: 
   );
 
   return (
-    <div className="glass-panel glass-panel-hover rounded-2xl overflow-hidden transition-all mb-4">
-      <div 
-        className="p-5 flex items-center justify-between cursor-pointer group"
+    <div className="bg-white border border-slate-200 hover:border-slate-300 rounded-xl overflow-hidden transition-colors duration-150 mb-3">
+      <div
+        role="button"
+        tabIndex={0}
+        aria-expanded={isOpen}
         onClick={() => setIsOpen(!isOpen)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setIsOpen(!isOpen);
+          }
+        }}
+        className="p-5 flex items-center justify-between gap-4 cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-600"
       >
-        <div className="flex items-center gap-4">
-          <div className="flex flex-col">
-            <div className="flex items-center gap-2">
-              <h3 className="text-xl font-black text-white">{maskWbsedcl(release.tag_name)}</h3>
-              {isLatest && (
-                <span className="bg-green-500/20 text-green-400 text-[10px] font-bold px-2 py-0.5 rounded-lg uppercase tracking-wider">
-                  Latest
-                </span>
-              )}
-              <span className="bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-[10px] font-bold px-2 py-0.5 rounded-lg flex items-center gap-1">
-                <Download className="w-2.5 h-2.5" /> {totalDownloads.toLocaleString()} downloads
-              </span>
-            </div>
-            <span className="text-xs text-slate-500">Released on {new Date(release.published_at).toLocaleDateString()}</span>
+        <div className="flex flex-col min-w-0">
+          <div className="flex flex-wrap items-center gap-2 mb-1">
+            <h3 className="font-display text-lg font-bold text-slate-900 font-mono tabular-nums">
+              {maskWbsedcl(release.tag_name)}
+            </h3>
+            {isLatest && (
+              <>
+                <span aria-hidden="true" className="text-slate-300">·</span>
+                <span className="text-xs font-semibold text-emerald-700">Latest Release</span>
+              </>
+            )}
+            <span aria-hidden="true" className="text-slate-300">·</span>
+            <span className="text-xs font-mono tabular-nums text-slate-600">
+              {totalDownloads.toLocaleString()} downloads
+            </span>
           </div>
+          <span className="text-xs font-mono tabular-nums text-slate-500">
+            Released {new Date(release.published_at).toLocaleDateString()}
+          </span>
         </div>
-        
-        <div className="flex items-center gap-6">
-          <div className="hidden md:flex gap-2">
-            {release.assets.slice(0, 2).map(asset => {
-              const assetCount = getDownloadCount(asset.name + release.tag_name, asset.download_count);
+
+        <div className="flex items-center gap-4 shrink-0">
+          <div className="hidden md:flex items-center gap-2">
+            {release.assets.slice(0, 2).map((asset) => {
+              const assetCount = getDownloadCount(
+                asset.name + release.tag_name,
+                asset.download_count
+              );
               return (
-                <a 
+                <a
                   key={asset.name}
-                  href={asset.browser_download_url} 
+                  href={getAssetDownloadUrl(asset.browser_download_url, asset.name)}
                   onClick={(e) => e.stopPropagation()}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 transition-all text-xs font-bold"
+                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700 text-slate-700 transition-colors duration-150 text-xs font-semibold whitespace-nowrap shrink-0"
                 >
-                  <Download className="w-3 h-3" />
-                  {maskWbsedcl(asset.name)}
-                  <span className="text-[10px] opacity-75 font-mono">({assetCount.toLocaleString()})</span>
+                  <Download className="w-3.5 h-3.5" />
+                  <span className="max-w-[200px] truncate">{maskWbsedcl(asset.name)}</span>
+                  <span className="text-[11px] text-slate-500 font-mono tabular-nums">
+                    ({assetCount.toLocaleString()})
+                  </span>
                 </a>
               );
             })}
           </div>
-          <div className="text-slate-500 group-hover:text-white transition-colors">
+          <div className="text-slate-400 group-hover:text-slate-700 transition-colors">
             {isOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
           </div>
         </div>
@@ -101,60 +122,68 @@ const ReleaseItem = ({ release, isLatest, repo }: { release: Release, isLatest: 
         {isOpen && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
+            animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="border-t border-white/5 bg-black/20"
+            transition={{ duration: 0.2 }}
+            className="border-t border-slate-200 bg-slate-50 overflow-hidden"
           >
             <div className="p-6">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2">
-                  <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
-                    <History className="w-3 h-3" /> Release Notes
+                  <h4 className="text-xs font-semibold text-slate-500 mb-3 flex items-center gap-1.5">
+                    <History className="w-3.5 h-3.5" /> Release Notes
                   </h4>
-                  <div className="prose prose-invert prose-sm max-w-none prose-cyan 
-                    prose-p:text-slate-400 prose-headings:text-white prose-li:text-slate-400
-                    overflow-x-auto pb-4">
+                  <div className="markdown-body text-sm overflow-x-auto pb-2">
                     <ReactMarkdown
                       remarkPlugins={[remarkGfm]}
                       urlTransform={(uri) => {
-                        if (!uri.startsWith('http') && !uri.startsWith('mailto:') && !uri.startsWith('#')) {
+                        if (
+                          !uri.startsWith('http') &&
+                          !uri.startsWith('mailto:') &&
+                          !uri.startsWith('#')
+                        ) {
                           return `https://raw.githubusercontent.com/${repo}/${release.tag_name}/${uri.replace(/^\//, '')}`;
                         }
                         return uri;
                       }}
                     >
-                      {maskWbsedcl(release.body) || "_No detailed release notes provided._"}
+                      {maskWbsedcl(release.body) || '_No detailed release notes provided._'}
                     </ReactMarkdown>
                   </div>
                 </div>
-                
-                <div className="bg-white/5 rounded-xl p-5 border border-white/5 h-fit">
-                  <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">All Assets</h4>
+
+                <div className="bg-white rounded-lg p-4 border border-slate-200 h-fit">
+                  <h4 className="text-xs font-semibold text-slate-500 mb-3">Release Assets</h4>
                   <div className="flex flex-col gap-2">
                     {release.assets.length > 0 ? (
-                      release.assets.map(asset => {
-                        const assetCount = getDownloadCount(asset.name + release.tag_name, asset.download_count);
+                      release.assets.map((asset) => {
+                        const assetCount = getDownloadCount(
+                          asset.name + release.tag_name,
+                          asset.download_count
+                        );
                         return (
-                          <a 
+                          <a
                             key={asset.name}
-                            href={asset.browser_download_url} 
-                            className="flex items-center justify-between p-3 rounded-xl bg-slate-800/50 hover:bg-cyan-500/20 hover:text-cyan-300 transition-colors text-sm font-medium text-slate-300"
+                            href={getAssetDownloadUrl(asset.browser_download_url, asset.name)}
+                            className="flex items-center justify-between p-3 rounded-lg border border-slate-200 bg-slate-50 hover:bg-blue-50 hover:border-blue-200 transition-colors duration-150 text-xs font-medium text-slate-800"
                           >
                             <div className="flex flex-col truncate mr-2">
-                              <span className="truncate">{maskWbsedcl(asset.name)}</span>
-                              <span className="text-[10px] text-cyan-400/80 font-mono">
-                                {assetCount.toLocaleString()} total downloads
+                              <span className="truncate font-semibold">{maskWbsedcl(asset.name)}</span>
+                              <span className="text-[11px] text-slate-500 font-mono tabular-nums mt-0.5">
+                                {assetCount.toLocaleString()} downloads
                               </span>
                             </div>
-                            <div className="flex items-center gap-3 shrink-0">
-                              <span className="text-[10px] text-slate-600">{(asset.size / 1024 / 1024).toFixed(1)} MB</span>
-                              <Download className="w-4 h-4 text-cyan-400" />
+                            <div className="flex items-center gap-2.5 shrink-0">
+                              <span className="text-[11px] font-mono tabular-nums text-slate-500">
+                                {(asset.size / 1024 / 1024).toFixed(1)} MB
+                              </span>
+                              <Download className="w-4 h-4 text-blue-700" />
                             </div>
                           </a>
                         );
                       })
                     ) : (
-                      <span className="text-xs text-slate-600 italic">No assets available.</span>
+                      <span className="text-xs text-slate-500">No assets available.</span>
                     )}
                   </div>
                 </div>
@@ -165,7 +194,7 @@ const ReleaseItem = ({ release, isLatest, repo }: { release: Release, isLatest: 
       </AnimatePresence>
     </div>
   );
-}
+};
 
 export function Downloads() {
   const [data, setData] = useState<AppReleases[]>([]);
@@ -178,21 +207,19 @@ export function Downloads() {
       try {
         const q = query(collection(db, 'repositories'));
         const qs = await getDocs(q);
-        const apps: { title: string, repo: string }[] = [];
-        qs.forEach(doc => {
+        const apps: { title: string; repo: string }[] = [];
+        qs.forEach((doc) => {
           const d = doc.data();
           apps.push({ title: d.title, repo: d.repoName });
         });
 
-        // Fallback if empty just to be safe
         if (apps.length === 0) {
           apps.push(
-            { title: "Spot Image Viewer", repo: "Hackers-lab/spotimageviewer" },
-            { title: "Estimator", repo: "Hackers-lab/estimator" }
+            { title: 'Spot Image Viewer', repo: 'Hackers-lab/spotimageviewer' },
+            { title: 'Estimator', repo: 'Hackers-lab/estimator' }
           );
         }
 
-        // Fetch all public releases from central distribution hub
         let hubReleases: Release[] = [];
         try {
           const hubRes = await fetchGithubApi(`repos/Hackers-lab/releases/releases?per_page=100`);
@@ -202,48 +229,42 @@ export function Downloads() {
               hubReleases = parsed;
             }
           }
-        } catch (e) {
+        } catch {
           // ignore
         }
 
         const results = await Promise.all(
           apps.map(async (app) => {
             const shortName = (app.repo.split('/')[1] || '').toLowerCase();
-            
-            // Match releases starting with app short name (e.g. "spotimageviewer-v20.69")
-            const matchedReleases = hubReleases.filter(r => 
-              r.tag_name.toLowerCase().startsWith(shortName + '-')
-            ).map(r => ({
-              ...r,
-              // Clean tag_name for UI display (e.g. spotimageviewer-v20.69 -> v20.69)
-              tag_name: r.tag_name.replace(new RegExp(`^${shortName}-`, 'i'), '')
-            }));
+
+            const matchedReleases = hubReleases
+              .filter((r) => r.tag_name.toLowerCase().startsWith(shortName + '-'))
+              .map((r) => ({
+                ...r,
+                tag_name: r.tag_name.replace(new RegExp(`^${shortName}-`, 'i'), ''),
+              }));
 
             if (matchedReleases.length > 0) {
               return { ...app, releases: matchedReleases.slice(0, 10) };
             }
 
-            // Fallback to legacy individual repo query (in case of local proxy with token)
             try {
-              let res = await fetchGithubApi(`repos/${app.repo}/releases`);
+              const res = await fetchGithubApi(`repos/${app.repo}/releases`);
               if (res.ok) {
                 const releases = await res.json();
                 if (Array.isArray(releases) && releases.length > 0) {
                   return { ...app, releases: releases.slice(0, 10) };
                 }
               }
-              
-              // Fallback to verified official releases when API is rate-limited or unavailable
+
               return { ...app, releases: REAL_FALLBACK_RELEASES[app.repo] || [] };
-            } catch (e) {
+            } catch {
               return { ...app, releases: REAL_FALLBACK_RELEASES[app.repo] || [] };
             }
-
-            return { ...app, releases: [] };
           })
         );
         setData(results);
-      } catch (err) {
+      } catch {
         setError('Failed to fetch downloads from our distribution server.');
       } finally {
         setLoading(false);
@@ -254,68 +275,81 @@ export function Downloads() {
 
   return (
     <PageTransition>
-      <div className="p-4 md:p-8 max-w-6xl mx-auto h-full flex flex-col gap-8 pb-20">
-        <div className="text-center relative py-12">
-          <h1 className="text-4xl md:text-5xl font-black text-white mb-4 tracking-tight">Downloads Center</h1>
-          <p className="text-lg text-slate-400 max-w-2xl mx-auto">
-            Browse official releases and older versions of tools fetched directly from our source repositories.
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex flex-col gap-10 pb-20">
+        <div className="border-b border-slate-200 pb-8">
+          <p className="text-xs font-semibold text-blue-700 mb-2">Release Archive</p>
+          <h1 className="font-display text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight mb-3">
+            Downloads Center
+          </h1>
+          <p className="text-base text-slate-600 max-w-2xl">
+            Browse official installers and archived versions directly from the WBTools release hub.
           </p>
         </div>
 
         {loading ? (
-           <div className="flex-1 border border-white/5 rounded-3xl flex items-center justify-center p-24">
-             <div className="w-8 h-8 rounded-full border-t-2 border-r-2 border-cyan-500 animate-spin"></div>
-           </div>
+          <div className="bg-white border border-slate-200 rounded-xl flex items-center justify-center p-20">
+            <Loader2 className="w-6 h-6 text-blue-700 animate-spin" />
+          </div>
         ) : error ? (
-           <div className="flex-1 bg-slate-900/40 border border-red-500/20 rounded-3xl p-16 flex flex-col items-center justify-center text-center">
-             <AlertCircle className="w-12 h-12 text-red-400 mb-4" />
-             <h3 className="text-xl font-bold text-white mb-2">Service Unavailable</h3>
-             <p className="text-slate-400">{error}</p>
-           </div>
+          <div className="bg-white border border-red-200 rounded-xl p-12 flex flex-col items-center justify-center text-center">
+            <AlertCircle className="w-10 h-10 text-red-600 mb-3" />
+            <h3 className="font-display text-lg font-bold text-slate-900 mb-1">
+              Service Unavailable
+            </h3>
+            <p className="text-sm text-slate-600">{error}</p>
+          </div>
         ) : (
-          <div className="flex flex-col gap-16">
-            {data.map((app, index) => (
-              <motion.div 
-                key={app.title}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="flex flex-col"
-              >
-                <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 rounded-2xl bg-cyan-500/10 border border-cyan-500/20">
-                      <FileBox className="w-6 h-6 text-cyan-400" />
+          <div className="flex flex-col gap-14">
+            {data.map((app) => (
+              <section key={app.title} className="flex flex-col">
+                <div className="flex flex-wrap items-center justify-between gap-4 mb-5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center shrink-0">
+                      <FileBox className="w-5 h-5 text-blue-700" />
                     </div>
-                    <h2 className="text-3xl font-black text-white tracking-tight">{maskWbsedcl(app.title)}</h2>
+                    <div>
+                      <h2 className="font-display text-2xl font-bold text-slate-900 tracking-tight">
+                        {maskWbsedcl(app.title)}
+                      </h2>
+                      <p className="text-xs text-slate-500">Official Desktop Release</p>
+                    </div>
                   </div>
-                  <a 
-                    href={`https://github.com/${app.repo}/releases`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white/5 border border-white/10 hover:border-cyan-500/30 hover:bg-cyan-500/10 text-slate-300 hover:text-cyan-300 text-xs font-semibold transition-all"
+                  <Link
+                    to={`/tools?app=${app.repo.split('/')[1]}`}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-colors duration-150 whitespace-nowrap shrink-0"
                   >
-                    View on GitHub <Download className="w-3 h-3" />
-                  </a>
+                    View Documentation
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
                 </div>
 
                 {app.releases.length === 0 ? (
-                  <div className="bg-slate-900/40 border border-dashed border-white/10 rounded-2xl p-12 text-center text-slate-500 flex flex-col items-center gap-2">
-                    <History className="w-8 h-8 opacity-20" />
-                    <span>No public binaries found in this distribution branch.</span>
+                  <div className="bg-white border border-dashed border-slate-300 rounded-xl p-10 text-center text-slate-500 flex flex-col items-center gap-2">
+                    <History className="w-6 h-6 text-slate-400" />
+                    <span className="text-sm">
+                      No public binaries found in this distribution branch.
+                    </span>
                   </div>
                 ) : (
                   <div className="flex flex-col">
                     {app.releases.map((release, rIdx) => (
-                       <ReleaseItem key={release.id} release={release} isLatest={rIdx === 0} repo={app.repo} />
+                      <ReleaseItem
+                        key={release.id}
+                        release={release}
+                        isLatest={rIdx === 0}
+                        repo={app.repo}
+                      />
                     ))}
                   </div>
                 )}
 
                 <div className="mt-4">
-                  <FeedbackWidget toolId={app.repo.replace('/', '_')} toolTitle={maskWbsedcl(app.title)} />
+                  <FeedbackWidget
+                    toolId={app.repo.replace('/', '_')}
+                    toolTitle={maskWbsedcl(app.title)}
+                  />
                 </div>
-              </motion.div>
+              </section>
             ))}
           </div>
         )}

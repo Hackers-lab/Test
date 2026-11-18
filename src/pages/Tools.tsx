@@ -1,4 +1,4 @@
-import { fetchGithubApi, REAL_FALLBACK_RELEASES } from '../lib/github';
+import { fetchGithubApi, REAL_FALLBACK_RELEASES, getAssetDownloadUrl } from '../lib/github';
 import { useState, useEffect } from 'react';
 import { Download, PlayCircle, BookOpen, AlertCircle, Loader2 } from 'lucide-react';
 import { motion } from 'motion/react';
@@ -25,15 +25,9 @@ interface Release {
   body: string;
 }
 
-// Consistent download count helper (200 - 300)
-const getDownloadCount = (idOrName: string, actualCount?: number) => {
-  if (typeof actualCount === 'number' && actualCount > 300) return actualCount;
-  let hash = 0;
-  for (let i = 0; i < idOrName.length; i++) {
-    hash = (hash * 31 + idOrName.charCodeAt(i)) & 0xffffffff;
-  }
-  const offset = Math.abs(hash) % 101; // 0 to 100
-  return 200 + offset + (actualCount || 0);
+// Exact download count from release asset data
+const getDownloadCount = (_idOrName: string, actualCount?: number) => {
+  return typeof actualCount === 'number' ? actualCount : 0;
 };
 
 export function Tools() {
@@ -41,7 +35,7 @@ export function Tools() {
   const navigate = useNavigate();
   const [repos, setRepos] = useState<any[]>([]);
   const [reposLoading, setReposLoading] = useState(true);
-  
+
   const initApp = searchParams.get('app') || '';
   const [selectedRepoSlug, setSelectedRepoSlug] = useState<string>(initApp);
 
@@ -60,31 +54,32 @@ export function Tools() {
         sorted = [
           {
             id: 'hackers-lab_spotimageviewer',
-            repoName: "Hackers-lab/spotimageviewer",
-            title: "Spot Image Viewer"
+            repoName: 'Hackers-lab/spotimageviewer',
+            title: 'Spot Image Viewer',
           },
           {
             id: 'hackers-lab_estimator',
-            repoName: "Hackers-lab/estimator",
-            title: "Estimator"
-          }
+            repoName: 'Hackers-lab/estimator',
+            title: 'Estimator',
+          },
         ];
       } else {
         const results: any[] = [];
-        snapshot.forEach(doc => {
+        snapshot.forEach((doc) => {
           results.push({ id: doc.id, ...doc.data() });
         });
         sorted = results.sort((a, b) => a.createdAt - b.createdAt);
       }
-      
+
       setRepos(sorted);
       setReposLoading(false);
-      
+
       if (!selectedRepoSlug && sorted.length > 0) {
         setSelectedRepoSlug(sorted[0].repoName);
       } else if (selectedRepoSlug && sorted.length > 0) {
-        // Find matching repo Name or partial match
-        const matching = sorted.find(r => r.repoName === selectedRepoSlug || r.repoName.endsWith(`/${selectedRepoSlug}`));
+        const matching = sorted.find(
+          (r) => r.repoName === selectedRepoSlug || r.repoName.endsWith(`/${selectedRepoSlug}`)
+        );
         if (matching) {
           setSelectedRepoSlug(matching.repoName);
         } else {
@@ -98,105 +93,104 @@ export function Tools() {
   useEffect(() => {
     async function fetchData() {
       if (!selectedRepoSlug || !selectedRepoSlug.includes('/')) return;
-      
+
       setLoading(true);
       setError('');
       setYtLink(null);
-      
+
       try {
         const repoName = selectedRepoSlug;
         const shortName = (repoName.split('/')[1] || '').toLowerCase();
-        
+
         let releaseBody = '';
         const fallbackRelease = REAL_FALLBACK_RELEASES[repoName]?.[0] || null;
 
         try {
-          // First check public releases repository
-          let hubRes = await fetchGithubApi(`repos/Hackers-lab/releases/releases?per_page=100`);
+          const hubRes = await fetchGithubApi(`repos/Hackers-lab/releases/releases?per_page=100`);
           let matchedRelease = null;
           if (hubRes.ok) {
             const allHub = await hubRes.json();
             if (Array.isArray(allHub)) {
-              matchedRelease = allHub.find(r => r.tag_name.toLowerCase().startsWith(shortName + '-'));
+              matchedRelease = allHub.find((r) =>
+                r.tag_name.toLowerCase().startsWith(shortName + '-')
+              );
             }
           }
 
           if (matchedRelease) {
             setRelease({
               ...matchedRelease,
-              tag_name: matchedRelease.tag_name.replace(new RegExp(`^${shortName}-`, 'i'), '')
+              tag_name: matchedRelease.tag_name.replace(new RegExp(`^${shortName}-`, 'i'), ''),
             });
             releaseBody = matchedRelease.body || '';
           } else {
-            // Fallback to individual repo
-            let relRes = await fetchGithubApi(`repos/${repoName}/releases/latest`);
+            const relRes = await fetchGithubApi(`repos/${repoName}/releases/latest`);
             if (relRes.ok) {
-               const relData = await relRes.json();
-               if (relData && relData.tag_name) {
-                 setRelease(relData);
-                 releaseBody = relData.body || '';
-               } else {
-                 setRelease(fallbackRelease);
-                 releaseBody = fallbackRelease?.body || '';
-               }
+              const relData = await relRes.json();
+              if (relData && relData.tag_name) {
+                setRelease(relData);
+                releaseBody = relData.body || '';
+              } else {
+                setRelease(fallbackRelease);
+                releaseBody = fallbackRelease?.body || '';
+              }
             } else {
-               let listRes = await fetchGithubApi(`repos/${repoName}/releases`);
-               if (listRes.ok) {
-                  const listData = await listRes.json();
-                  if (Array.isArray(listData) && listData.length > 0) {
-                    setRelease(listData[0]);
-                    releaseBody = listData[0].body || '';
-                  } else {
-                    setRelease(fallbackRelease);
-                    releaseBody = fallbackRelease?.body || '';
-                  }
-               } else {
+              const listRes = await fetchGithubApi(`repos/${repoName}/releases`);
+              if (listRes.ok) {
+                const listData = await listRes.json();
+                if (Array.isArray(listData) && listData.length > 0) {
+                  setRelease(listData[0]);
+                  releaseBody = listData[0].body || '';
+                } else {
                   setRelease(fallbackRelease);
                   releaseBody = fallbackRelease?.body || '';
-               }
+                }
+              } else {
+                setRelease(fallbackRelease);
+                releaseBody = fallbackRelease?.body || '';
+              }
             }
           }
-        } catch (e) {
+        } catch {
           setRelease(fallbackRelease);
           releaseBody = fallbackRelease?.body || '';
         }
 
         let readmeText = '';
-        let baseReadmeUrl = `https://raw.githubusercontent.com/Hackers-lab/releases/main/docs`;
+        const baseReadmeUrl = `https://raw.githubusercontent.com/Hackers-lab/releases/main/docs`;
         try {
-          // Check docs in public releases repository first
-          const docRes = await fetch(`https://raw.githubusercontent.com/Hackers-lab/releases/main/docs/${shortName}.md`);
+          const docRes = await fetch(
+            `https://raw.githubusercontent.com/Hackers-lab/releases/main/docs/${shortName}.md`
+          );
           if (docRes.ok) {
             readmeText = await docRes.text();
           } else {
-            // Direct fetch fallback from main/master
-            const directRawRes = await fetch(`https://raw.githubusercontent.com/${repoName}/main/README.md`);
-            if (directRawRes.ok) {
-              readmeText = await directRawRes.text();
-            } else {
-              const masterRawRes = await fetch(`https://raw.githubusercontent.com/${repoName}/master/README.md`);
-              if (masterRawRes.ok) {
-                readmeText = await masterRawRes.text();
-                baseReadmeUrl = `https://raw.githubusercontent.com/${repoName}/master`;
+            const readmeMeta = await fetchGithubApi(`repos/${repoName}/readme`);
+            if (readmeMeta.ok) {
+              const metaJson = await readmeMeta.json();
+              if (metaJson?.content) {
+                readmeText = atob(metaJson.content.replace(/\n/g, ''));
               }
             }
           }
-        } catch (e) {
-           // Silently ignore if failed
+        } catch {
+          // Silently ignore
+        }
+        if (!readmeText && releaseBody) {
+          readmeText = releaseBody;
         }
         setReadme(maskWbsedcl(readmeText));
         setReadmeBaseUrl(baseReadmeUrl);
 
-        // Try to extract YouTube URL from README or Release Body
-        const combinedText = releaseBody + "\n" + readmeText;
-        const ytRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/i;
+        const combinedText = releaseBody + '\n' + readmeText;
+        const ytRegex =
+          /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/i;
         const match = combinedText.match(ytRegex);
-        
-        if (match && match[1]) {
-           setYtLink(`https://www.youtube.com/embed/${match[1]}`);
-        }
 
-      } catch (err) {
+        if (match && match[1]) {
+          setYtLink(`https://www.youtube.com/embed/${match[1]}`);
+        }
+      } catch {
         setError('Failed to fetch data from source distribution.');
       } finally {
         setLoading(false);
@@ -205,157 +199,191 @@ export function Tools() {
     fetchData();
   }, [selectedRepoSlug]);
 
+  const currentRepoTitle = maskWbsedcl(
+    repos.find((r) => r.repoName === selectedRepoSlug)?.title ||
+      selectedRepoSlug.split('/').pop()
+  );
+
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 items-start h-full pb-20">
-      
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start pb-20">
       {/* Sidebar Navigation */}
-      <aside className="col-span-1 lg:col-span-3 flex flex-col gap-4">
-        <div className="bg-slate-900/60 border border-white/5 rounded-3xl p-6 shadow-xl">
-           <h3 className="text-white font-bold mb-4 px-2 uppercase tracking-tight text-xs text-slate-500">Available Tools</h3>
-           {reposLoading ? (
-             <div className="flex justify-center p-4">
-               <Loader2 className="w-6 h-6 text-cyan-500 animate-spin" />
-             </div>
-           ) : (
-             <div className="flex flex-col gap-2">
-               {repos.map(repo => (
-                 <button 
+      <aside className="col-span-1 lg:col-span-3">
+        <div className="bg-white border border-slate-200 rounded-xl p-4">
+          <h2 className="text-xs font-semibold text-slate-500 px-2.5 mb-3">
+            Available Tools
+          </h2>
+          {reposLoading ? (
+            <div className="flex justify-center p-6">
+              <Loader2 className="w-5 h-5 text-blue-700 animate-spin" />
+            </div>
+          ) : (
+            <div className="flex flex-col gap-1">
+              {repos.map((repo) => {
+                const isSelected = selectedRepoSlug === repo.repoName;
+                return (
+                  <button
                     key={repo.id}
+                    type="button"
                     onClick={() => {
-                        setSelectedRepoSlug(repo.repoName);
-                        navigate(`/tools?app=${repo.repoName.split('/')[1]}`, { replace: true });
+                      setSelectedRepoSlug(repo.repoName);
+                      navigate(`/tools?app=${repo.repoName.split('/')[1]}`, { replace: true });
                     }}
-                    className={`text-left px-4 py-3 rounded-xl text-sm font-bold transition-all ${selectedRepoSlug === repo.repoName ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'text-slate-400 hover:bg-slate-800 hover:text-white border border-transparent'}`}
-                 >
+                    className={`text-left px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150 truncate ${
+                      isSelected
+                        ? 'bg-blue-50 text-blue-700 font-semibold border border-blue-200'
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-transparent'
+                    }`}
+                  >
                     {maskWbsedcl(repo.title)}
-                 </button>
-               ))}
-             </div>
-           )}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
       </aside>
 
       {/* Main Panel */}
       <section className="col-span-1 lg:col-span-9 flex flex-col gap-6 min-h-[500px]">
         {loading ? (
-           <div className="flex-1 bg-slate-900/40 border border-white/5 rounded-3xl flex items-center justify-center p-12">
-             <div className="w-8 h-8 rounded-full border-t-2 border-r-2 border-cyan-500 animate-spin"></div>
-           </div>
+          <div className="bg-white border border-slate-200 rounded-xl flex items-center justify-center p-16">
+            <Loader2 className="w-6 h-6 text-blue-700 animate-spin" />
+          </div>
         ) : error ? (
-           <div className="flex-1 bg-slate-900/40 border border-red-500/20 rounded-3xl p-12 flex flex-col items-center justify-center text-center">
-             <AlertCircle className="w-12 h-12 text-red-400 mb-4" />
-             <h3 className="text-xl font-bold text-white mb-2">System Outage</h3>
-             <p className="text-slate-400">{error}</p>
-           </div>
+          <div className="bg-white border border-red-200 rounded-xl p-12 flex flex-col items-center justify-center text-center">
+            <AlertCircle className="w-10 h-10 text-red-600 mb-3" />
+            <h3 className="font-display text-lg font-bold text-slate-900 mb-1">
+              Distribution Unavailable
+            </h3>
+            <p className="text-sm text-slate-600">{error}</p>
+          </div>
         ) : (
-          <motion.div initial={{opacity:0, y:10}} animate={{opacity:1, y:0}} className="flex flex-col gap-6">
-            
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
+            className="flex flex-col gap-6"
+          >
             {/* Release Header */}
-            <div className="glass-panel rounded-3xl p-8 relative overflow-hidden shadow-2xl">
-              <div className="absolute -top-24 -right-24 w-64 h-64 bg-cyan-500/15 rounded-full blur-[80px] pointer-events-none"></div>
-              
-              <div className="relative flex items-center justify-between gap-4 mb-6">
-                <div className="flex items-center gap-3">
-                   <div className="px-3 py-1 rounded-full bg-cyan-500/20 border border-cyan-500/30 text-[10px] uppercase tracking-widest font-bold text-cyan-400">
-                     {release ? 'Stable Release' : 'Development Build'}
-                   </div>
-                   {release && <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>}
-                </div>
+            <div className="bg-white border border-slate-200 rounded-xl p-6 md:p-8">
+              <div className="flex items-center gap-2 text-xs text-slate-500 mb-2">
+                <span className="font-semibold text-blue-700">
+                  {release ? 'Stable Release' : 'Development Build'}
+                </span>
+                <span aria-hidden="true">·</span>
+                <span>Desktop Utility</span>
               </div>
-              
-              <h1 className="text-4xl font-black text-white mb-2 leading-tight">
-                {maskWbsedcl(repos.find(r => r.repoName === selectedRepoSlug)?.title || selectedRepoSlug.split('/').pop())}
+
+              <h1 className="font-display text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight mb-6">
+                {currentRepoTitle}
               </h1>
-              
+
               {release ? (
-                 <div className="mt-8 flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-                   {release.assets.slice(0,1).map(asset => (
-                     <a href={asset.browser_download_url} target="_blank" rel="noreferrer" key={asset.name} className="px-8 py-4 rounded-2xl bg-gradient-to-r from-cyan-600 to-blue-700 text-white font-bold text-sm shadow-[0_10px_25px_-5px_rgba(6,182,212,0.4)] hover:scale-105 active:scale-95 transition-all w-full sm:w-auto text-center flex items-center justify-center gap-2">
-                       <Download className="w-4 h-4" /> Download {maskWbsedcl(asset.name)}
-                     </a>
-                   ))}
-                   <div className="flex gap-6 mt-4 sm:mt-0 justify-center w-full sm:w-auto px-4">
-                     <div className="flex flex-col">
-                       <span className="text-[10px] text-slate-500 uppercase font-bold tracking-tighter">Version</span>
-                       <span className="text-cyan-400 font-mono text-sm">{maskWbsedcl(release.tag_name)}</span>
-                     </div>
-                     <div className="flex flex-col">
-                       <span className="text-[10px] text-slate-500 uppercase font-bold tracking-tighter">Updated</span>
-                       <span className="text-white font-mono text-sm">{new Date(release.published_at).toLocaleDateString()}</span>
-                     </div>
-                    <div className="flex flex-col">
-                      <span className="text-[10px] text-slate-500 uppercase font-bold tracking-tighter">Downloads</span>
-                      <span className="text-emerald-400 font-mono text-sm font-bold">
-                        {release.assets.reduce((sum, a) => sum + getDownloadCount(a.name + release.tag_name, a.download_count), 0).toLocaleString()}
+                <div className="flex flex-col gap-6">
+                  <div className="flex flex-wrap items-center gap-3">
+                    {release.assets.slice(0, 1).map((asset) => (
+                      <a
+                        href={getAssetDownloadUrl(asset.browser_download_url, asset.name)}
+                        key={asset.name}
+                        className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg bg-blue-700 hover:bg-blue-800 text-white font-semibold text-sm transition-colors duration-150 whitespace-nowrap shrink-0"
+                      >
+                        <Download className="w-4 h-4" />
+                        Download {maskWbsedcl(asset.name)}
+                      </a>
+                    ))}
+                  </div>
+
+                  <div className="grid grid-cols-3 border-t border-slate-200 pt-5 gap-4">
+                    <div>
+                      <span className="text-xs text-slate-500 block mb-0.5">Version</span>
+                      <span className="font-mono tabular-nums text-sm font-semibold text-slate-900">
+                        {maskWbsedcl(release.tag_name)}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-xs text-slate-500 block mb-0.5">Updated</span>
+                      <span className="font-mono tabular-nums text-sm font-semibold text-slate-900">
+                        {new Date(release.published_at).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-xs text-slate-500 block mb-0.5">Downloads</span>
+                      <span className="font-mono tabular-nums text-sm font-semibold text-emerald-700">
+                        {release.assets
+                          .reduce(
+                            (sum, a) =>
+                              sum + getDownloadCount(a.name + release.tag_name, a.download_count),
+                            0
+                          )
+                          .toLocaleString()}
                       </span>
                     </div>
                   </div>
                 </div>
               ) : (
-                 <div className="mt-4 p-6 border border-dashed border-white/10 rounded-2xl bg-black/20 flex flex-col gap-2">
-                   <p className="text-slate-400 font-medium">No official binaries found for this tool.</p>
-                   <p className="text-xs text-slate-600">
-                     This may happen if the repository is private or no public releases have been tagged yet. 
-                     Please check back later or contact support if you believe this is an error.
-                   </p>
-                 </div>
+                <div className="p-5 border border-dashed border-slate-300 rounded-lg bg-slate-50 flex flex-col gap-1.5">
+                  <p className="text-slate-800 text-sm font-semibold">
+                    No official installers found for this tool.
+                  </p>
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    No public builds have been published for this utility yet. Please check back
+                    later or contact support if you need assistance.
+                  </p>
+                </div>
               )}
             </div>
 
-            {/* Video Tutorial (Dynamic) */}
+            {/* Video Tutorial */}
             {ytLink && (
-              <div className="bg-slate-900/60 border border-cyan-500/20 rounded-3xl shadow-[0_0_40px_rgba(6,182,212,0.05)] overflow-hidden">
-                 <div className="p-4 border-b border-white/5 bg-slate-900/80 flex items-center gap-2">
-                   <PlayCircle className="w-4 h-4 text-cyan-400" />
-                   <h3 className="text-sm font-bold text-white uppercase tracking-wider">Video Tutorial</h3>
-                 </div>
-                 <div className="aspect-video w-full bg-black">
-                   <iframe 
-                     className="w-full h-full" 
-                     src={ytLink} 
-                     title="YouTube video player" 
-                     frameBorder="0" 
-                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                     allowFullScreen
-                   ></iframe>
-                 </div>
+              <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+                <div className="px-6 py-4 border-b border-slate-200 flex items-center gap-2">
+                  <PlayCircle className="w-4 h-4 text-blue-700" />
+                  <h2 className="font-display text-sm font-bold text-slate-900">Video Walkthrough</h2>
+                </div>
+                <div className="aspect-video w-full bg-slate-950">
+                  <iframe
+                    className="w-full h-full"
+                    src={ytLink}
+                    title="Tool video walkthrough"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
               </div>
             )}
 
             {/* README Content */}
             {readme && (
-                <div className="bg-[#0f172a] border border-white/5 rounded-3xl p-6 md:p-10">
-                  <h3 className="text-white font-bold mb-6 flex items-center gap-2 pb-4 border-b border-white/5">
-                    <BookOpen className="w-4 h-4 text-cyan-500" />
-                    Documentation
-                  </h3>
-                  <div className="markdown-body prose prose-invert prose-cyan max-w-none 
-                    prose-headings:font-bold prose-headings:tracking-tight 
-                    prose-a:text-cyan-400 prose-a:no-underline hover:prose-a:underline
-                    prose-pre:bg-slate-900 prose-pre:border prose-pre:border-white/10
-                    prose-img:rounded-xl prose-img:border prose-img:border-white/10"
+              <div className="bg-white border border-slate-200 rounded-xl p-6 md:p-8">
+                <h2 className="font-display text-base font-bold text-slate-900 mb-6 flex items-center gap-2 pb-4 border-b border-slate-200">
+                  <BookOpen className="w-4 h-4 text-blue-700" />
+                  Documentation
+                </h2>
+                <div className="markdown-body max-w-none">
+                  <Markdown
+                    remarkPlugins={[remarkGfm]}
+                    urlTransform={(uri) => {
+                      if (
+                        !uri.startsWith('http') &&
+                        !uri.startsWith('mailto:') &&
+                        !uri.startsWith('#')
+                      ) {
+                        return `${readmeBaseUrl}/${uri.replace(/^\//, '')}`;
+                      }
+                      return uri;
+                    }}
                   >
-                    <Markdown 
-                      remarkPlugins={[remarkGfm]}
-                      urlTransform={(uri) => {
-                        if (!uri.startsWith('http') && !uri.startsWith('mailto:') && !uri.startsWith('#')) {
-                          return `${readmeBaseUrl}/${uri.replace(/^\//, '')}`;
-                        }
-                        return uri;
-                      }}
-                    >
-                      {readme}
-                    </Markdown>
-                  </div>
+                    {readme}
+                  </Markdown>
                 </div>
+              </div>
             )}
-            
-            {/* Feedback & Ratings Widget */}
-            <FeedbackWidget 
-              toolId={selectedRepoSlug.replace('/', '_')} 
-              toolTitle={maskWbsedcl(repos.find(r => r.repoName === selectedRepoSlug)?.title || selectedRepoSlug.split('/').pop() || 'Tool')} 
-            />
 
+            {/* Feedback & Ratings Widget */}
+            <FeedbackWidget
+              toolId={selectedRepoSlug.replace('/', '_')}
+              toolTitle={currentRepoTitle || 'Tool'}
+            />
           </motion.div>
         )}
       </section>

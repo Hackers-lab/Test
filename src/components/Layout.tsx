@@ -1,6 +1,6 @@
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
-import { Menu, X, MessageSquare, Settings, Users, Eye } from "lucide-react";
+import { Menu, X, Settings, ExternalLink } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "../lib/utils";
 import logo from "../assets/logo.png";
@@ -9,12 +9,11 @@ import { auth } from "../lib/firebase";
 import { trackSiteVisit, subscribeToSiteVisits } from "../lib/stats";
 
 const navItems = [
-  { name: "Home", path: "/" },
   { name: "Tools", path: "/tools" },
   { name: "Downloads", path: "/downloads" },
-  { name: "Support", path: "/support", isSpecial: true },
-  { name: "About", path: "/about" },
   { name: "Forum", path: "/forum" },
+  { name: "Support", path: "/support" },
+  { name: "About", path: "/about" },
 ];
 
 export function Layout() {
@@ -38,120 +37,137 @@ export function Layout() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#02040a] text-slate-200 font-sans selection:bg-cyan-500 selection:text-white flex flex-col overflow-x-hidden relative">
-      {/* Dynamic Ambient Background Elements */}
-      <div className="fixed inset-0 bg-cyber-grid opacity-75 pointer-events-none -z-10" />
-      
-      {/* Aurora Beams */}
-      <div className="fixed -top-[20vw] -left-[10vw] w-[50vw] h-[50vw] rounded-full bg-gradient-to-tr from-cyan-600/20 via-sky-500/15 to-transparent blur-[120px] pointer-events-none -z-10 animate-aurora" />
-      <div className="fixed top-[30vh] -right-[15vw] w-[55vw] h-[55vw] rounded-full bg-gradient-to-bl from-purple-600/20 via-pink-600/10 to-transparent blur-[140px] pointer-events-none -z-10 animate-aurora" style={{ animationDirection: 'reverse', animationDuration: '32s' }} />
-      <div className="fixed -bottom-[10vw] left-[20vw] w-[45vw] h-[45vw] rounded-full bg-gradient-to-t from-blue-600/15 via-indigo-600/10 to-transparent blur-[120px] pointer-events-none -z-10 animate-pulse-glow" />
+    <div className="min-h-screen bg-[#F5F7FA] text-slate-900 font-sans selection:bg-blue-700 selection:text-white flex flex-col overflow-x-hidden relative">
+      {/* Subtle architectural drafting grid */}
+      <div className="fixed inset-0 bg-drafting-grid pointer-events-none -z-10" />
 
-      {/* Navigation */}
-      <nav className="h-16 px-4 md:px-8 flex items-center justify-between border-b border-white/10 bg-[#02040a]/80 backdrop-blur-2xl shrink-0 sticky top-0 z-50 shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
-        <div className="flex items-center gap-4">
-          <Link to="/" className="flex items-center gap-3 group">
-            <div className="relative w-10 h-10 rounded-2xl bg-gradient-to-br from-cyan-500/25 via-slate-900 to-purple-600/25 border border-cyan-500/30 p-1 overflow-hidden group-hover:border-cyan-400/70 transition-all duration-300 shadow-[0_0_25px_rgba(6,182,212,0.25)] flex items-center justify-center group-hover:scale-105">
-              <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-purple-500 opacity-0 group-hover:opacity-20 transition-opacity" />
-              <img 
-                src={logo} 
-                alt="Tools Logo" 
+      {/* Top Navigation Bar — 3-Zone Contract */}
+      <header className="h-16 bg-white/95 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50 shrink-0">
+        <div className="max-w-7xl mx-auto h-full px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-8">
+          {/* Zone 1: Brand Title */}
+          <Link
+            to="/"
+            className="flex items-center gap-2.5 whitespace-nowrap shrink-0 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 rounded-md"
+          >
+            <div className="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 p-1 overflow-hidden flex items-center justify-center shrink-0">
+              <img
+                src={logo}
+                alt="WBTools"
                 className="w-full h-full object-contain"
                 referrerPolicy="no-referrer"
                 onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = 'none';
+                  (e.target as HTMLImageElement).style.display = "none";
                   const parent = (e.target as HTMLImageElement).parentElement;
                   if (parent) {
-                    parent.innerHTML = '<span class="text-xs font-black text-cyan-500">WB</span>';
+                    parent.innerHTML =
+                      '<span class="text-xs font-bold text-white font-display">WB</span>';
                   }
                 }}
               />
             </div>
-            <span className="text-xl font-black tracking-tight text-white hidden sm:block">
-              WB<span className="bg-gradient-to-r from-cyan-400 to-indigo-400 bg-clip-text text-transparent">TOOLS</span>
+            <span className="font-display text-lg font-extrabold tracking-tight text-slate-900 whitespace-nowrap shrink-0">
+              WBTools
             </span>
           </Link>
-        </div>
 
-        {/* Desktop Nav */}
-        <div className="hidden md:flex items-center gap-8">
-          {navItems.map((item) => {
-            const isActive = location.pathname === item.path;
-
-            if (item.isSpecial) {
+          {/* Zone 2: Clean Typography Nav Links */}
+          <nav className="hidden md:flex items-center gap-7" aria-label="Main navigation">
+            {navItems.map((item) => {
+              const isActive = location.pathname === item.path;
               return (
                 <Link
                   key={item.name}
                   to={item.path}
-                  className="text-sm font-medium text-cyan-400 hover:text-cyan-300 transition-colors bg-cyan-400/10 px-3 py-1 rounded-full"
+                  className={cn(
+                    "relative py-1 text-sm font-medium transition-colors duration-150 whitespace-nowrap shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 rounded-sm",
+                    isActive
+                      ? "text-blue-700 font-semibold"
+                      : "text-slate-600 hover:text-slate-900"
+                  )}
                 >
                   {item.name}
+                  {isActive && (
+                    <motion.div
+                      layoutId="navbar-indicator"
+                      className="absolute -bottom-[19px] left-0 h-[2px] w-full bg-blue-700"
+                      transition={{ type: "spring", bounce: 0.2, duration: 0.35 }}
+                    />
+                  )}
                 </Link>
               );
-            }
+            })}
 
-            return (
+            {userEmail === "pramod.theroxtar@gmail.com" && (
               <Link
-                key={item.name}
-                to={item.path}
+                to="/settings"
                 className={cn(
-                  "relative text-sm font-medium transition-colors",
-                  isActive ? "text-white" : "text-slate-400 hover:text-white"
+                  "relative py-1 text-sm font-medium flex items-center gap-1.5 transition-colors duration-150 whitespace-nowrap shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 rounded-sm",
+                  location.pathname === "/settings"
+                    ? "text-blue-700 font-semibold"
+                    : "text-slate-600 hover:text-slate-900"
                 )}
               >
-                {item.name}
-                {isActive && (
+                <Settings className="w-3.5 h-3.5" />
+                Config
+                {location.pathname === "/settings" && (
                   <motion.div
                     layoutId="navbar-indicator"
-                    className="absolute -bottom-[22px] left-0 h-[2px] w-full bg-cyan-500"
-                    transition={{ type: "spring", bounce: 0.25, duration: 0.5 }}
+                    className="absolute -bottom-[19px] left-0 h-[2px] w-full bg-blue-700"
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.35 }}
                   />
                 )}
               </Link>
-            );
-          })}
-          
-          {userEmail === "pramod.theroxtar@gmail.com" && (
-            <Link
-              to="/settings"
-              className={cn(
-                "relative text-sm font-bold flex items-center gap-1 transition-colors",
-                location.pathname === "/settings" ? "text-cyan-400" : "text-slate-400 hover:text-cyan-400"
-              )}
-            >
-              <Settings className="w-4 h-4" /> Config
-              {location.pathname === "/settings" && (
-                <motion.div
-                  layoutId="navbar-indicator"
-                  className="absolute -bottom-[22px] left-0 h-[2px] w-full bg-cyan-500"
-                  transition={{ type: "spring", bounce: 0.25, duration: 0.5 }}
-                />
-              )}
-            </Link>
-          )}
-        </div>
+            )}
+          </nav>
 
-        {/* Mobile menu button */}
-        <div className="md:hidden">
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="inline-flex items-center justify-center rounded-md p-2 text-slate-400 hover:bg-white/5 hover:text-white"
-          >
-            {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </button>
+          {/* Zone 3: Single Primary Action + Mobile Trigger */}
+          <div className="flex items-center gap-3 shrink-0">
+            <a
+              href="/estimator/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden md:inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-700 hover:bg-blue-800 text-white text-xs font-semibold transition-colors duration-150 whitespace-nowrap shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2"
+            >
+              Launch Estimator
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+              aria-expanded={mobileMenuOpen}
+              className="md:hidden inline-flex items-center justify-center rounded-lg p-2.5 min-w-[44px] min-h-[44px] text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors duration-150"
+            >
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+          </div>
         </div>
-      </nav>
+      </header>
 
       {/* Mobile Navigation Dropdown */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="md:hidden border-b border-white/10 bg-slate-900 absolute top-16 left-0 right-0 z-40 shadow-xl overflow-hidden"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.15 }}
+            className="md:hidden border-b border-slate-200 bg-white sticky top-16 left-0 right-0 z-40 shadow-sm"
           >
-            <div className="flex flex-col px-4 py-4 space-y-4">
+            <div className="flex flex-col px-4 py-4 space-y-1">
+              <Link
+                to="/"
+                onClick={() => setMobileMenuOpen(false)}
+                className={cn(
+                  "px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                  location.pathname === "/"
+                    ? "bg-blue-50 text-blue-700 font-semibold"
+                    : "text-slate-700 hover:bg-slate-50"
+                )}
+              >
+                Home
+              </Link>
               {navItems.map((item) => {
                 const isActive = location.pathname === item.path;
                 return (
@@ -160,8 +176,10 @@ export function Layout() {
                     to={item.path}
                     onClick={() => setMobileMenuOpen(false)}
                     className={cn(
-                      "text-sm font-medium block",
-                      isActive ? "text-cyan-400" : "text-slate-400 hover:text-white"
+                      "px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                      isActive
+                        ? "bg-blue-50 text-blue-700 font-semibold"
+                        : "text-slate-700 hover:bg-slate-50"
                     )}
                   >
                     {item.name}
@@ -169,17 +187,31 @@ export function Layout() {
                 );
               })}
               {userEmail === "pramod.theroxtar@gmail.com" && (
-                  <Link
-                    to="/settings"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className={cn(
-                      "text-sm font-bold flex items-center gap-2",
-                      location.pathname === "/settings" ? "text-cyan-400" : "text-slate-400 hover:text-cyan-400"
-                    )}
-                  >
-                    <Settings className="w-4 h-4" /> Config
-                  </Link>
+                <Link
+                  to="/settings"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={cn(
+                    "px-3 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors",
+                    location.pathname === "/settings"
+                      ? "bg-blue-50 text-blue-700 font-semibold"
+                      : "text-slate-700 hover:bg-slate-50"
+                  )}
+                >
+                  <Settings className="w-4 h-4" /> Config
+                </Link>
               )}
+              <div className="pt-2 border-t border-slate-100">
+                <a
+                  href="/estimator/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-blue-700 text-white text-sm font-semibold"
+                >
+                  Launch Estimator
+                  <ExternalLink className="w-4 h-4" />
+                </a>
+              </div>
             </div>
           </motion.div>
         )}
@@ -190,22 +222,37 @@ export function Layout() {
         <Outlet />
       </main>
 
-      {/* Footer */}
-      <footer className="h-min md:h-12 border-t border-white/5 flex flex-col md:flex-row md:items-center justify-between px-4 md:px-8 bg-slate-950 py-4 md:py-0 shrink-0 gap-3 md:gap-0">
-        <div className="text-[10px] text-slate-500 uppercase font-bold tracking-widest text-center md:text-left">
-          © {new Date().getFullYear()} WBTOOLS INTEGRATED ECOSYSTEM
-        </div>
-        <div className="flex flex-wrap items-center justify-center md:justify-end gap-3 sm:gap-6">
-          {visitorCount !== null && (
-            <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-[10px] text-cyan-400 font-mono font-bold">
-              <Eye className="w-3 h-3 text-cyan-400" />
-              <span>{visitorCount.toLocaleString()} VISITS</span>
-            </div>
-          )}
-          <span className="text-[10px] text-slate-500 flex items-center gap-1">
-            STATUS: <span className="text-green-500 font-bold">ALL SYSTEMS OPERATIONAL</span>
-          </span>
-          <span className="text-[10px] text-slate-500">UPTIME: 99.9%</span>
+      {/* Quiet Editorial Footer */}
+      <footer className="border-t border-slate-200 bg-white shrink-0">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3 text-xs text-slate-500">
+            <span className="font-semibold text-slate-700">WBTools</span>
+            <span aria-hidden="true">·</span>
+            <span>© {new Date().getFullYear()} Field &amp; Utility Software Suite</span>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-5 text-xs text-slate-500">
+            <Link to="/tools" className="hover:text-slate-900 transition-colors">
+              Tools
+            </Link>
+            <Link to="/downloads" className="hover:text-slate-900 transition-colors">
+              Downloads
+            </Link>
+            <Link to="/support" className="hover:text-slate-900 transition-colors">
+              Support
+            </Link>
+            <Link to="/about" className="hover:text-slate-900 transition-colors">
+              About
+            </Link>
+            {visitorCount !== null && (
+              <>
+                <span aria-hidden="true">·</span>
+                <span className="font-mono tabular-nums text-slate-500">
+                  {visitorCount.toLocaleString()} visits
+                </span>
+              </>
+            )}
+          </div>
         </div>
       </footer>
     </div>

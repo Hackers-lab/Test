@@ -1,63 +1,75 @@
 import { PageTransition } from '../App';
-import { Layers, Zap, ShieldCheck, Cpu } from 'lucide-react';
+import { Layers, Zap, ShieldCheck } from 'lucide-react';
 
 export function About() {
   return (
     <PageTransition>
-      <div className="p-4 md:p-8 max-w-4xl mx-auto h-full pb-24">
-        
-        <div className="text-center py-12">
-          <h1 className="text-4xl md:text-5xl font-black text-white mb-6 tracking-tight">
-            About WB<span className="text-cyan-400">TOOLS</span>
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 pb-20">
+        <div className="border-b border-slate-200 pb-8 mb-10">
+          <p className="text-xs font-semibold text-blue-700 mb-2">Platform Overview</p>
+          <h1 className="font-display text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight mb-4">
+            About WBTools
           </h1>
-          <p className="text-lg md:text-xl text-slate-400 leading-relaxed max-w-2xl mx-auto">
-            A dedicated utility and workflow automation ecosystem designed to streamline field operations, consumer data inspection, and estimation processing.
+          <p className="text-base md:text-lg text-slate-600 leading-relaxed max-w-2xl">
+            A dedicated utility and workflow automation suite built to streamline field operations,
+            consumer data inspection, and electrical line estimation.
           </p>
         </div>
 
-        <div className="glass-panel rounded-3xl p-8 md:p-12 shadow-2xl relative overflow-hidden mb-10">
-          <div className="absolute top-0 right-0 w-72 h-72 bg-cyan-500/10 rounded-full blur-[90px] pointer-events-none"></div>
-          <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">Why was WBTOOLS created?</h2>
-          <p className="text-slate-300 text-base md:text-lg leading-relaxed mb-6">
-            Utility and field personnel frequently encounter bottlenecks when handling vast consumer datasets, manual electrical line drafting, offline record synchronization, and notice generation. 
+        <section className="bg-white border border-slate-200 rounded-xl p-8 md:p-10 mb-8">
+          <h2 className="font-display text-2xl font-bold text-slate-900 mb-4">
+            Why WBTools was built
+          </h2>
+          <p className="text-slate-700 text-base leading-relaxed mb-4">
+            Utility and field personnel frequently encounter bottlenecks when handling large consumer
+            datasets, manual electrical line drafting, offline record synchronization, and notice
+            generation.
           </p>
-          <p className="text-slate-400 text-base md:text-lg leading-relaxed">
-            WBTOOLS was built to solve these real-world challenges by providing modern, ultra-responsive web applications and lightweight desktop binaries that eliminate tedious administrative tasks and accelerate day-to-day decision-making directly on site and in office.
+          <p className="text-slate-600 text-base leading-relaxed">
+            WBTools addresses these challenges with responsive browser applications and lightweight
+            desktop binaries that reduce repetitive manual work and support faster decision-making
+            both in the office and on site.
           </p>
-        </div>
+        </section>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="glass-panel glass-panel-hover rounded-2xl p-6">
-            <div className="w-11 h-11 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center mb-4 shadow-[0_0_15px_rgba(6,182,212,0.3)]">
+        <section className="bg-white border border-slate-200 rounded-xl grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-slate-200">
+          <div className="p-6">
+            <div className="w-10 h-10 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 flex items-center justify-center mb-4">
               <Zap className="w-5 h-5" />
             </div>
-            <h3 className="text-lg font-bold text-white mb-2">Instant Execution</h3>
-            <p className="text-slate-400 text-sm leading-relaxed">
-              Designed for performance with local browser processing and instantaneous query responses.
+            <h3 className="font-display text-base font-bold text-slate-900 mb-2">
+              Instant Execution
+            </h3>
+            <p className="text-slate-600 text-sm leading-relaxed">
+              Engineered for local browser processing and fast query responses across large consumer
+              datasets.
             </p>
           </div>
 
-          <div className="glass-panel glass-panel-hover rounded-2xl p-6">
-            <div className="w-11 h-11 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center mb-4 shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+          <div className="p-6">
+            <div className="w-10 h-10 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center mb-4">
               <Layers className="w-5 h-5" />
             </div>
-            <h3 className="text-lg font-bold text-white mb-2">Modular Tools</h3>
-            <p className="text-slate-400 text-sm leading-relaxed">
-              From meter image diagnostics to line estimators and disconnection managers, all in one portal.
+            <h3 className="font-display text-base font-bold text-slate-900 mb-2">Modular Tools</h3>
+            <p className="text-slate-600 text-sm leading-relaxed">
+              Meter image inspection, LT/HT line estimation, and disconnection tracking unified in
+              one portal.
             </p>
           </div>
 
-          <div className="glass-panel glass-panel-hover rounded-2xl p-6">
-            <div className="w-11 h-11 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center mb-4 shadow-[0_0_15px_rgba(168,85,247,0.3)]">
+          <div className="p-6">
+            <div className="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 flex items-center justify-center mb-4">
               <ShieldCheck className="w-5 h-5" />
             </div>
-            <h3 className="text-lg font-bold text-white mb-2">Secure & Reliable</h3>
-            <p className="text-slate-400 text-sm leading-relaxed">
-              Always up-to-date with direct release distributions, transparent release notes, and active monitoring.
+            <h3 className="font-display text-base font-bold text-slate-900 mb-2">
+              Verified Releases
+            </h3>
+            <p className="text-slate-600 text-sm leading-relaxed">
+              Centralized release distributions, transparent changelogs, and verified installers in
+              one unified portal.
             </p>
           </div>
-        </div>
-
+        </section>
       </div>
     </PageTransition>
   );
