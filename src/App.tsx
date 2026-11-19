@@ -1,8 +1,18 @@
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
-import { fetchGithubApi, REAL_FALLBACK_RELEASES, getAssetDownloadUrl } from "./lib/github";
+import {
+  getAssetDownloadUrl,
+  getCachedHubReleases,
+  getCachedRepos,
+  setCachedRepos,
+  subscribeToHubReleases,
+  matchLatestReleaseForRepo,
+  DEFAULT_REPOS,
+  type ReleaseItemData,
+  type RepoRecord,
+} from "./lib/github";
 import { useState, useEffect } from "react";
 import { motion } from "motion/react";
-import { ArrowRight, Download, ExternalLink, Loader2, PowerOff, Zap, Layers } from "lucide-react";
+import { ArrowRight, Download, ExternalLink, PowerOff, Zap, Layers } from "lucide-react";
 import { Layout } from "./components/Layout";
 import { Forum } from "./pages/Forum";
 import { Tools } from "./pages/Tools";
@@ -14,13 +24,6 @@ import heroWorkspaceImg from "./assets/images/hero_grid_workspace_1795019969346.
 import { collection, query, onSnapshot } from "firebase/firestore";
 import { db } from "./lib/firebase";
 import { maskWbsedcl } from "./lib/censor";
-
-interface Release {
-  name: string;
-  tag_name: string;
-  published_at: string;
-  assets: { name: string; size: number; download_url?: string; browser_download_url?: string }[];
-}
 
 export const PageTransition = ({ children }: { children: React.ReactNode }) => (
   <motion.div
@@ -34,68 +37,20 @@ export const PageTransition = ({ children }: { children: React.ReactNode }) => (
 );
 
 const AppFeatureCard = ({
-  repoName,
   title,
   description,
   to,
   webAppUrl,
+  release,
 }: {
-  repoName: string;
   title: string;
   description: string;
   to: string;
   webAppUrl?: string;
+  release: ReleaseItemData | null;
 }) => {
-  const [release, setRelease] = useState<Release | null>(null);
-
-  useEffect(() => {
-    const fetchReleaseInfo = async () => {
-      try {
-        const shortName = (repoName.split("/")[1] || "").toLowerCase();
-        const hubRes = await fetchGithubApi(`repos/Hackers-lab/releases/releases?per_page=100`);
-        if (hubRes.ok) {
-          const allHub = await hubRes.json();
-          if (Array.isArray(allHub)) {
-            const matched = allHub.find((r) => r.tag_name.toLowerCase().startsWith(shortName + "-"));
-            if (matched) {
-              setRelease({
-                ...matched,
-                tag_name: matched.tag_name.replace(new RegExp(`^${shortName}-`, "i"), ""),
-              });
-              return;
-            }
-          }
-        }
-
-        const res = await fetchGithubApi(`repos/${repoName}/releases/latest`);
-        if (res.ok) {
-          const data = await res.json();
-          if (data && data.tag_name) {
-            setRelease(data);
-            return;
-          }
-        }
-
-        const listRes = await fetchGithubApi(`repos/${repoName}/releases`);
-        if (listRes.ok) {
-          const listData = await listRes.json();
-          if (Array.isArray(listData) && listData.length > 0) {
-            setRelease(listData[0]);
-            return;
-          }
-        }
-
-        if (REAL_FALLBACK_RELEASES[repoName]?.[0]) {
-          setRelease(REAL_FALLBACK_RELEASES[repoName][0]);
-        }
-      } catch {
-        if (REAL_FALLBACK_RELEASES[repoName]?.[0]) {
-          setRelease(REAL_FALLBACK_RELEASES[repoName][0]);
-        }
-      }
-    };
-    fetchReleaseInfo();
-  }, [repoName]);
+  const primaryAsset = release?.assets?.[0];
+  const assetUrl = primaryAsset?.browser_download_url || primaryAsset?.download_url;
 
   return (
     <article className="bg-white border border-slate-200 hover:border-slate-300 rounded-xl p-6 flex flex-col transition-colors duration-150">
@@ -124,30 +79,23 @@ const AppFeatureCard = ({
       </p>
 
       <div className="pt-4 border-t border-slate-100 flex flex-wrap items-center gap-2.5">
-        {(() => {
-          const primaryAsset = release?.assets?.[0];
-          const assetUrl = primaryAsset?.browser_download_url || primaryAsset?.download_url;
-          if (primaryAsset && assetUrl) {
-            return (
-              <a
-                href={getAssetDownloadUrl(assetUrl, primaryAsset.name)}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-700 hover:bg-blue-800 text-white text-xs font-semibold transition-colors duration-150 whitespace-nowrap shrink-0"
-              >
-                <Download className="w-3.5 h-3.5" />
-                Download
-              </a>
-            );
-          }
-          return (
-            <Link
-              to="/downloads"
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-700 hover:bg-blue-800 text-white text-xs font-semibold transition-colors duration-150 whitespace-nowrap shrink-0"
-            >
-              <Download className="w-3.5 h-3.5" />
-              Download
-            </Link>
-          );
-        })()}
+        {primaryAsset && assetUrl ? (
+          <a
+            href={getAssetDownloadUrl(assetUrl, primaryAsset.name)}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-700 hover:bg-blue-800 text-white text-xs font-semibold transition-colors duration-150 whitespace-nowrap shrink-0"
+          >
+            <Download className="w-3.5 h-3.5" />
+            Download
+          </a>
+        ) : (
+          <Link
+            to="/downloads"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-700 hover:bg-blue-800 text-white text-xs font-semibold transition-colors duration-150 whitespace-nowrap shrink-0"
+          >
+            <Download className="w-3.5 h-3.5" />
+            Download
+          </Link>
+        )}
         <Link
           to={to}
           className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold transition-colors duration-150 whitespace-nowrap shrink-0"
@@ -244,53 +192,43 @@ const EstimatorWebCard = () => (
 );
 
 const Home = () => {
-  const [repos, setRepos] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [repos, setRepos] = useState<RepoRecord[]>(() => getCachedRepos());
+  const [hubReleases, setHubReleases] = useState<ReleaseItemData[] | null>(() =>
+    getCachedHubReleases()
+  );
   const [heroImgError, setHeroImgError] = useState(false);
 
   useEffect(() => {
+    const unsubReleases = subscribeToHubReleases((releases) => {
+      setHubReleases(releases);
+    });
+
     const q = query(collection(db, "repositories"));
-    const unsubscribe = onSnapshot(
+    const unsubRepos = onSnapshot(
       q,
       (snapshot) => {
         if (snapshot.empty) {
-          const initialApps = [
-            {
-              id: "hackers-lab_spotimageviewer",
-              repoName: "Hackers-lab/spotimageviewer",
-              title: "Spot Image Viewer",
-              description:
-                "Search meter images within a fraction of a second using consumer ID, name, meter number, or mobile number. Includes utilities like a theft bill calculator.",
-              createdAt: 1,
-            },
-            {
-              id: "hackers-lab_estimator",
-              repoName: "Hackers-lab/estimator",
-              title: "Estimator",
-              description:
-                "Draw electrical lines on a canvas and automatically generate estimates. Features LT/HT lines, DTR structures, and allows exporting drawings and estimates to PDF and Excel.",
-              createdAt: 2,
-              webAppUrl: "/estimator/",
-            },
-          ];
-          setRepos(initialApps);
-          setLoading(false);
+          setRepos(DEFAULT_REPOS);
+          setCachedRepos(DEFAULT_REPOS);
         } else {
-          const results: any[] = [];
+          const results: RepoRecord[] = [];
           snapshot.forEach((doc) => {
-            results.push({ id: doc.id, ...doc.data() });
+            results.push({ id: doc.id, ...(doc.data() as Omit<RepoRecord, "id">) });
           });
-          setRepos(results.sort((a, b) => a.createdAt - b.createdAt));
-          setLoading(false);
+          const sorted = results.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+          setRepos(sorted);
+          setCachedRepos(sorted);
         }
       },
       (error) => {
         console.error(error);
-        setLoading(false);
       }
     );
 
-    return () => unsubscribe();
+    return () => {
+      unsubReleases();
+      unsubRepos();
+    };
   }, []);
 
   return (
@@ -355,7 +293,7 @@ const Home = () => {
           <div className="p-5">
             <p className="text-xs text-slate-500 mb-1">Desktop Suites</p>
             <p className="font-display text-2xl font-bold text-slate-900 tabular-nums">
-              {loading ? "—" : repos.length}
+              {repos.length}
             </p>
           </div>
           <div className="p-5">
@@ -391,28 +329,22 @@ const Home = () => {
             </Link>
           </div>
 
-          {loading ? (
-            <div className="bg-white border border-slate-200 rounded-xl p-12 flex justify-center">
-              <Loader2 className="w-6 h-6 text-blue-700 animate-spin" />
-            </div>
-          ) : (
-            <div
-              className={`grid grid-cols-1 gap-6 ${
-                repos.length === 2 ? "md:grid-cols-2" : "md:grid-cols-2 lg:grid-cols-3"
-              }`}
-            >
-              {repos.map((repo) => (
-                <AppFeatureCard
-                  key={repo.id}
-                  repoName={repo.repoName}
-                  title={repo.title}
-                  description={repo.description}
-                  to={`/tools?app=${repo.repoName.split("/")[1]}`}
-                  webAppUrl={repo.webAppUrl}
-                />
-              ))}
-            </div>
-          )}
+          <div
+            className={`grid grid-cols-1 gap-6 ${
+              repos.length === 2 ? "md:grid-cols-2" : "md:grid-cols-2 lg:grid-cols-3"
+            }`}
+          >
+            {repos.map((repo) => (
+              <AppFeatureCard
+                key={repo.id}
+                title={repo.title}
+                description={repo.description || ""}
+                to={`/tools?app=${repo.repoName.split("/")[1]}`}
+                webAppUrl={repo.webAppUrl}
+                release={matchLatestReleaseForRepo(hubReleases, repo.repoName)}
+              />
+            ))}
+          </div>
         </section>
 
         {/* Browser Web Applications */}

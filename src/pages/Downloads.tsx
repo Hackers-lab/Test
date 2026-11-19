@@ -1,37 +1,35 @@
-import { fetchGithubApi, REAL_FALLBACK_RELEASES, getAssetDownloadUrl } from '../lib/github';
-import { useState, useEffect } from 'react';
-import { Download, AlertCircle, FileBox, ChevronDown, ChevronUp, History, Loader2, ArrowRight } from 'lucide-react';
+import {
+  getAssetDownloadUrl,
+  getCachedHubReleases,
+  getCachedRepos,
+  setCachedRepos,
+  subscribeToHubReleases,
+  fetchHubReleases,
+  matchReleasesForRepo,
+  DEFAULT_REPOS,
+  RELEASES_HUB_REPO,
+  type ReleaseItemData,
+  type RepoRecord,
+} from '../lib/github';
+import { useState, useEffect, useMemo } from 'react';
+import {
+  Download,
+  FileBox,
+  ChevronDown,
+  ChevronUp,
+  History,
+  ArrowRight,
+  RefreshCw,
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { PageTransition } from '../App';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { collection, query, getDocs } from 'firebase/firestore';
+import { collection, query, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { FeedbackWidget } from '../components/FeedbackWidget';
 import { maskWbsedcl } from '../lib/censor';
-
-interface Asset {
-  name: string;
-  size: number;
-  browser_download_url: string;
-  download_count: number;
-}
-
-interface Release {
-  id: number;
-  name: string;
-  tag_name: string;
-  published_at: string;
-  assets: Asset[];
-  body: string;
-}
-
-interface AppReleases {
-  title: string;
-  repo: string;
-  releases: Release[];
-}
 
 // Exact download count from release asset data
 const getDownloadCount = (_idOrName: string, actualCount?: number) => {
@@ -41,11 +39,9 @@ const getDownloadCount = (_idOrName: string, actualCount?: number) => {
 const ReleaseItem = ({
   release,
   isLatest,
-  repo,
 }: {
-  release: Release;
+  release: ReleaseItemData;
   isLatest: boolean;
-  repo: string;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const totalDownloads = (release.assets || []).reduce(
@@ -142,7 +138,7 @@ const ReleaseItem = ({
                           !uri.startsWith('mailto:') &&
                           !uri.startsWith('#')
                         ) {
-                          return `https://raw.githubusercontent.com/${repo}/${release.tag_name}/${uri.replace(/^\//, '')}`;
+                          return `https://raw.githubusercontent.com/${RELEASES_HUB_REPO}/main/docs/${uri.replace(/^\//, '')}`;
                         }
                         return uri;
                       }}
@@ -197,162 +193,131 @@ const ReleaseItem = ({
 };
 
 export function Downloads() {
-  const [data, setData] = useState<AppReleases[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [repos, setRepos] = useState<RepoRecord[]>(() => getCachedRepos());
+  const [hubReleases, setHubReleases] = useState<ReleaseItemData[] | null>(() =>
+    getCachedHubReleases()
+  );
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    async function fetchAllReleases() {
-      setLoading(true);
-      try {
-        const q = query(collection(db, 'repositories'));
-        const qs = await getDocs(q);
-        const apps: { title: string; repo: string }[] = [];
-        qs.forEach((doc) => {
-          const d = doc.data();
-          apps.push({ title: d.title, repo: d.repoName });
+    const unsubReleases = subscribeToHubReleases((releases) => {
+      setHubReleases(releases);
+    });
+
+    const q = query(collection(db, 'repositories'));
+    const unsubRepos = onSnapshot(q, (snapshot) => {
+      if (snapshot.empty) {
+        setRepos(DEFAULT_REPOS);
+        setCachedRepos(DEFAULT_REPOS);
+      } else {
+        const results: RepoRecord[] = [];
+        snapshot.forEach((doc) => {
+          results.push({ id: doc.id, ...(doc.data() as Omit<RepoRecord, 'id'>) });
         });
-
-        if (apps.length === 0) {
-          apps.push(
-            { title: 'Spot Image Viewer', repo: 'Hackers-lab/spotimageviewer' },
-            { title: 'Estimator', repo: 'Hackers-lab/estimator' }
-          );
-        }
-
-        let hubReleases: Release[] = [];
-        try {
-          const hubRes = await fetchGithubApi(`repos/Hackers-lab/releases/releases?per_page=100`);
-          if (hubRes.ok) {
-            const parsed = await hubRes.json();
-            if (Array.isArray(parsed)) {
-              hubReleases = parsed;
-            }
-          }
-        } catch {
-          // ignore
-        }
-
-        const results = await Promise.all(
-          apps.map(async (app) => {
-            const shortName = (app.repo.split('/')[1] || '').toLowerCase();
-
-            const matchedReleases = hubReleases
-              .filter((r) => r.tag_name.toLowerCase().startsWith(shortName + '-'))
-              .map((r) => ({
-                ...r,
-                tag_name: r.tag_name.replace(new RegExp(`^${shortName}-`, 'i'), ''),
-              }));
-
-            if (matchedReleases.length > 0) {
-              return { ...app, releases: matchedReleases.slice(0, 10) };
-            }
-
-            try {
-              const res = await fetchGithubApi(`repos/${app.repo}/releases`);
-              if (res.ok) {
-                const releases = await res.json();
-                if (Array.isArray(releases) && releases.length > 0) {
-                  return { ...app, releases: releases.slice(0, 10) };
-                }
-              }
-
-              return { ...app, releases: REAL_FALLBACK_RELEASES[app.repo] || [] };
-            } catch {
-              return { ...app, releases: REAL_FALLBACK_RELEASES[app.repo] || [] };
-            }
-          })
-        );
-        setData(results);
-      } catch {
-        setError('Failed to fetch downloads from our distribution server.');
-      } finally {
-        setLoading(false);
+        const sorted = results.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+        setRepos(sorted);
+        setCachedRepos(sorted);
       }
-    }
-    fetchAllReleases();
+    });
+
+    return () => {
+      unsubReleases();
+      unsubRepos();
+    };
   }, []);
+
+  const appReleasesList = useMemo(
+    () =>
+      repos.map((app) => ({
+        title: app.title,
+        repo: app.repoName,
+        releases: matchReleasesForRepo(hubReleases, app.repoName, 10),
+      })),
+    [repos, hubReleases]
+  );
+
+  const handleManualRefresh = async () => {
+    setRefreshing(true);
+    try {
+      const fresh = await fetchHubReleases(true);
+      if (fresh.length > 0) setHubReleases(fresh);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   return (
     <PageTransition>
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex flex-col gap-10 pb-20">
-        <div className="border-b border-slate-200 pb-8">
-          <p className="text-xs font-semibold text-blue-700 mb-2">Release Archive</p>
-          <h1 className="font-display text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight mb-3">
-            Downloads Center
-          </h1>
-          <p className="text-base text-slate-600 max-w-2xl">
-            Browse official installers and archived versions directly from the WBTools release hub.
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-200 pb-8">
+          <div>
+            <p className="text-xs font-semibold text-blue-700 mb-2">Release Archive</p>
+            <h1 className="font-display text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight mb-3">
+              Downloads Center
+            </h1>
+            <p className="text-base text-slate-600 max-w-2xl">
+              Browse official installers and archived versions directly from the WBTools release hub.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleManualRefresh}
+            disabled={refreshing}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 transition-colors duration-150 disabled:opacity-60 whitespace-nowrap shrink-0 self-start sm:self-end"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-blue-700' : ''}`} />
+            {refreshing ? 'Syncing' : 'Refresh Releases'}
+          </button>
         </div>
 
-        {loading ? (
-          <div className="bg-white border border-slate-200 rounded-xl flex items-center justify-center p-20">
-            <Loader2 className="w-6 h-6 text-blue-700 animate-spin" />
-          </div>
-        ) : error ? (
-          <div className="bg-white border border-red-200 rounded-xl p-12 flex flex-col items-center justify-center text-center">
-            <AlertCircle className="w-10 h-10 text-red-600 mb-3" />
-            <h3 className="font-display text-lg font-bold text-slate-900 mb-1">
-              Service Unavailable
-            </h3>
-            <p className="text-sm text-slate-600">{error}</p>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-14">
-            {data.map((app) => (
-              <section key={app.title} className="flex flex-col">
-                <div className="flex flex-wrap items-center justify-between gap-4 mb-5">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center shrink-0">
-                      <FileBox className="w-5 h-5 text-blue-700" />
-                    </div>
-                    <div>
-                      <h2 className="font-display text-2xl font-bold text-slate-900 tracking-tight">
-                        {maskWbsedcl(app.title)}
-                      </h2>
-                      <p className="text-xs text-slate-500">Official Desktop Release</p>
-                    </div>
+        <div className="flex flex-col gap-14">
+          {appReleasesList.map((app) => (
+            <section key={app.repo} className="flex flex-col">
+              <div className="flex flex-wrap items-center justify-between gap-4 mb-5">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center shrink-0">
+                    <FileBox className="w-5 h-5 text-blue-700" />
                   </div>
-                  <Link
-                    to={`/tools?app=${app.repo.split('/')[1]}`}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-colors duration-150 whitespace-nowrap shrink-0"
-                  >
-                    View Documentation
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
+                  <div>
+                    <h2 className="font-display text-2xl font-bold text-slate-900 tracking-tight">
+                      {maskWbsedcl(app.title)}
+                    </h2>
+                    <p className="text-xs text-slate-500">Official Desktop Release</p>
+                  </div>
                 </div>
+                <Link
+                  to={`/tools?app=${app.repo.split('/')[1]}`}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-colors duration-150 whitespace-nowrap shrink-0"
+                >
+                  View Documentation
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
 
-                {app.releases.length === 0 ? (
-                  <div className="bg-white border border-dashed border-slate-300 rounded-xl p-10 text-center text-slate-500 flex flex-col items-center gap-2">
-                    <History className="w-6 h-6 text-slate-400" />
-                    <span className="text-sm">
-                      No public binaries found in this distribution branch.
-                    </span>
-                  </div>
-                ) : (
-                  <div className="flex flex-col">
-                    {app.releases.map((release, rIdx) => (
-                      <ReleaseItem
-                        key={release.id}
-                        release={release}
-                        isLatest={rIdx === 0}
-                        repo={app.repo}
-                      />
-                    ))}
-                  </div>
-                )}
-
-                <div className="mt-4">
-                  <FeedbackWidget
-                    toolId={app.repo.replace('/', '_')}
-                    toolTitle={maskWbsedcl(app.title)}
-                  />
+              {app.releases.length === 0 ? (
+                <div className="bg-white border border-dashed border-slate-300 rounded-xl p-10 text-center text-slate-500 flex flex-col items-center gap-2">
+                  <History className="w-6 h-6 text-slate-400" />
+                  <span className="text-sm">
+                    No public binaries found in this distribution branch.
+                  </span>
                 </div>
-              </section>
-            ))}
-          </div>
-        )}
+              ) : (
+                <div className="flex flex-col">
+                  {app.releases.map((release, rIdx) => (
+                    <ReleaseItem key={release.id} release={release} isLatest={rIdx === 0} />
+                  ))}
+                </div>
+              )}
+
+              <div className="mt-4">
+                <FeedbackWidget
+                  toolId={app.repo.replace('/', '_')}
+                  toolTitle={maskWbsedcl(app.title)}
+                />
+              </div>
+            </section>
+          ))}
+        </div>
       </div>
     </PageTransition>
   );

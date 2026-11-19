@@ -7,6 +7,7 @@ import logo from "../assets/logo.png";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../lib/firebase";
 import { trackSiteVisit, subscribeToSiteVisits } from "../lib/stats";
+import { preloadHubData } from "../lib/github";
 
 const navItems = [
   { name: "Tools", path: "/tools" },
@@ -23,6 +24,7 @@ export function Layout() {
   const location = useLocation();
 
   useEffect(() => {
+    preloadHubData();
     trackSiteVisit();
     const unsub = subscribeToSiteVisits((count) => {
       setVisitorCount(count);
