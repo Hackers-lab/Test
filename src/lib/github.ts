@@ -50,17 +50,33 @@ export const DEFAULT_REPOS: RepoRecord[] = [
 export const REAL_FALLBACK_RELEASES: Record<string, ReleaseItemData[]> = {
   'Hackers-lab/spotimageviewer': [
     {
-      id: 2056,
-      name: 'Spot Image Viewer v20.56',
-      tag_name: 'v20.56',
-      published_at: '2026-03-20T00:00:00Z',
-      body: '### Spot Image Viewer v20.56\n- High-speed consumer photo query engine & image caching.\n- Direct consumer ID, meter, phone search with offline support.\n- Bill calculation and inspection studio utilities.',
+      id: 2072,
+      name: 'Spot Image Viewer v20.72',
+      tag_name: 'v20.72',
+      published_at: '2026-11-19T08:08:23Z',
+      body: '### Spot Image Viewer v20.72\n- Network folder addition validation and UNC accessibility fix.\n- Custom Excel report with Master record date range filters.\n- Verified Open DC/RC Fee detection and fee classification.',
       assets: [
         {
-          name: 'SpotImageViewer_Setup_v20.56.exe',
-          size: 52 * 1024 * 1024,
+          name: 'SpotImageViewer_Setup_v20.72.exe',
+          size: 53 * 1024 * 1024,
           browser_download_url:
-            'https://github.com/Hackers-lab/releases/releases/download/spotimageviewer-v20.56/SpotImageViewer_Setup_v20.56.exe',
+            'https://github.com/Hackers-lab/releases/releases/download/spotimageviewer-v20.72/SpotImageViewer_Setup_v20.72.exe',
+          download_count: 0,
+        },
+      ],
+    },
+    {
+      id: 2071,
+      name: 'Spot Image Viewer v20.71',
+      tag_name: 'v20.71',
+      published_at: '2026-10-09T09:51:16Z',
+      body: '### Spot Image Viewer v20.71\n- Add Open DC/RC Fee detection, smart classification, and Master record date filters.',
+      assets: [
+        {
+          name: 'SpotImageViewer_Setup_v20.71.exe',
+          size: 53 * 1024 * 1024,
+          browser_download_url:
+            'https://github.com/Hackers-lab/releases/releases/download/spotimageviewer-v20.71/SpotImageViewer_Setup_v20.71.exe',
           download_count: 0,
         },
       ],
