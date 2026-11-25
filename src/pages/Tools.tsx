@@ -14,7 +14,16 @@ import {
   type RepoRecord,
 } from '../lib/github';
 import { useState, useEffect, useMemo } from 'react';
-import { Download, PlayCircle, BookOpen, RefreshCw } from 'lucide-react';
+import {
+  Download,
+  PlayCircle,
+  BookOpen,
+  RefreshCw,
+  ExternalLink,
+  Tag,
+  Calendar,
+  ArrowDownToLine,
+} from 'lucide-react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useSearchParams, useNavigate } from 'react-router-dom';
@@ -161,19 +170,32 @@ export function Tools() {
 
   const readmeBaseUrl = `https://raw.githubusercontent.com/${RELEASES_HUB_REPO}/main/docs`;
 
+  const currentRepo = repos.find((r) => r.repoName === selectedRepoSlug);
   const currentRepoTitle = maskWbsedcl(
-    repos.find((r) => r.repoName === selectedRepoSlug)?.title ||
-      selectedRepoSlug.split('/').pop()
+    currentRepo?.title || selectedRepoSlug.split('/').pop()
   );
+  const currentRepoDesc = currentRepo?.description ? maskWbsedcl(currentRepo.description) : '';
+
+  const totalDownloads = release
+    ? release.assets.reduce(
+        (sum, a) => sum + getDownloadCount(a.name + release.tag_name, a.download_count),
+        0
+      )
+    : 0;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start pb-20">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 grid grid-cols-1 lg:grid-cols-12 gap-5 items-start pb-16">
       {/* Sidebar Navigation */}
-      <aside className="col-span-1 lg:col-span-3">
-        <div className="bg-white border border-slate-200 rounded-xl p-4">
-          <h2 className="text-xs font-semibold text-slate-500 px-2.5 mb-3">
-            Available Tools
-          </h2>
+      <aside className="col-span-1 lg:col-span-3 lg:sticky lg:top-20">
+        <div className="bg-white border border-slate-200/90 rounded-xl p-3.5 shadow-xs">
+          <div className="flex items-center justify-between px-2 mb-2.5">
+            <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+              Available Tools
+            </h2>
+            <span className="text-[11px] font-mono font-medium text-slate-400">
+              {repos.length}
+            </span>
+          </div>
           <div className="flex flex-col gap-1">
             {repos.map((repo) => {
               const isSelected = selectedRepoSlug === repo.repoName;
@@ -186,15 +208,28 @@ export function Tools() {
                     setSelectedRepoSlug(repo.repoName);
                     navigate(`/tools?app=${repo.repoName.split('/')[1]}`, { replace: true });
                   }}
-                  className={`text-left px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150 flex items-center justify-between gap-2 ${
+                  className={`text-left px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 flex items-center justify-between gap-2 ${
                     isSelected
-                      ? 'bg-blue-50 text-blue-700 font-semibold border border-blue-200'
+                      ? 'bg-blue-50/90 text-blue-700 font-semibold border border-blue-200/80 shadow-2xs'
                       : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-transparent'
                   }`}
                 >
-                  <span className="truncate">{maskWbsedcl(repo.title)}</span>
+                  <span className="flex items-center gap-2 min-w-0">
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full shrink-0 transition-colors ${
+                        isSelected ? 'bg-blue-600' : 'bg-slate-300'
+                      }`}
+                    />
+                    <span className="truncate">{maskWbsedcl(repo.title)}</span>
+                  </span>
                   {repoRelease && (
-                    <span className="font-mono tabular-nums text-[11px] text-slate-400 shrink-0">
+                    <span
+                      className={`font-mono tabular-nums text-[10px] px-1.5 py-0.5 rounded shrink-0 ${
+                        isSelected
+                          ? 'bg-blue-100/80 text-blue-700 font-semibold'
+                          : 'bg-slate-100 text-slate-500'
+                      }`}
+                    >
                       {maskWbsedcl(repoRelease.tag_name)}
                     </span>
                   )}
@@ -206,91 +241,96 @@ export function Tools() {
       </aside>
 
       {/* Main Panel */}
-      <section className="col-span-1 lg:col-span-9 flex flex-col gap-6 min-h-[500px]">
-        <div className="flex flex-col gap-6">
-          {/* Release Header */}
-          <div className="bg-white border border-slate-200 rounded-xl p-6 md:p-8">
-            <div className="flex items-center justify-between gap-4 mb-2">
-              <div className="flex items-center gap-2 text-xs text-slate-500">
-                <span className="font-semibold text-blue-700">
-                  {release ? 'Stable Release' : 'Desktop Build'}
-                </span>
-                <span aria-hidden="true">·</span>
-                <span>Desktop Utility</span>
+      <section className="col-span-1 lg:col-span-9 flex flex-col gap-5 min-h-[500px]">
+        <div className="flex flex-col gap-5">
+          {/* Compact Release Header */}
+          <div className="bg-white border border-slate-200/90 rounded-xl p-4 sm:p-5 shadow-xs">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200/70">
+                    {release ? 'Stable Release' : 'Desktop Utility'}
+                  </span>
+                  {release && (
+                    <>
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-mono font-semibold bg-slate-100 text-slate-700">
+                        <Tag className="w-3 h-3 text-slate-500" />
+                        {maskWbsedcl(release.tag_name)}
+                      </span>
+                      <span className="inline-flex items-center gap-1 text-[11px] font-mono text-slate-500">
+                        <Calendar className="w-3 h-3 text-slate-400" />
+                        {new Date(release.published_at).toLocaleDateString()}
+                      </span>
+                      <span className="inline-flex items-center gap-1 text-[11px] font-mono font-medium text-emerald-700">
+                        <ArrowDownToLine className="w-3 h-3" />
+                        {totalDownloads.toLocaleString()}
+                      </span>
+                    </>
+                  )}
+                </div>
+
+                <h1 className="font-display text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight truncate">
+                  {currentRepoTitle}
+                </h1>
+
+                {currentRepoDesc && (
+                  <p className="text-xs sm:text-sm text-slate-500 mt-1 line-clamp-2 leading-relaxed">
+                    {currentRepoDesc}
+                  </p>
+                )}
               </div>
 
-              <button
-                type="button"
-                onClick={handleManualRefresh}
-                disabled={refreshing}
-                aria-label="Refresh latest release"
-                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-xs font-medium text-slate-600 hover:text-slate-900 transition-colors duration-150 disabled:opacity-60 whitespace-nowrap shrink-0"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-blue-700' : ''}`} />
-                {refreshing ? 'Syncing' : 'Refresh'}
-              </button>
+              <div className="flex flex-wrap items-center gap-2 shrink-0">
+                {release?.assets.slice(0, 1).map((asset) => (
+                  <a
+                    href={getAssetDownloadUrl(asset.browser_download_url, asset.name)}
+                    key={asset.name}
+                    className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-blue-700 hover:bg-blue-800 text-white font-semibold text-xs sm:text-sm shadow-xs transition-colors duration-150 whitespace-nowrap shrink-0"
+                  >
+                    <Download className="w-4 h-4" />
+                    Download {maskWbsedcl(asset.name)}
+                  </a>
+                ))}
+
+                {currentRepo?.webAppUrl && (
+                  <a
+                    href={currentRepo.webAppUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 transition-colors duration-150 whitespace-nowrap shrink-0"
+                  >
+                    Open Web App
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                )}
+
+                <button
+                  type="button"
+                  onClick={handleManualRefresh}
+                  disabled={refreshing}
+                  title="Refresh latest release"
+                  aria-label="Refresh latest release"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-xs font-medium text-slate-600 hover:text-slate-900 transition-colors duration-150 disabled:opacity-60 whitespace-nowrap shrink-0"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-blue-700' : ''}`} />
+                  <span className="hidden sm:inline">{refreshing ? 'Syncing' : 'Refresh'}</span>
+                </button>
+              </div>
             </div>
 
-            <h1 className="font-display text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight mb-6">
-              {currentRepoTitle}
-            </h1>
-
-            {release ? (
-              <div className="flex flex-col gap-6">
-                <div className="flex flex-wrap items-center gap-3">
-                  {release.assets.slice(0, 1).map((asset) => (
-                    <a
-                      href={getAssetDownloadUrl(asset.browser_download_url, asset.name)}
-                      key={asset.name}
-                      className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg bg-blue-700 hover:bg-blue-800 text-white font-semibold text-sm transition-colors duration-150 whitespace-nowrap shrink-0"
-                    >
-                      <Download className="w-4 h-4" />
-                      Download {maskWbsedcl(asset.name)}
-                    </a>
-                  ))}
-                </div>
-
-                <div className="grid grid-cols-3 border-t border-slate-200 pt-5 gap-4">
-                  <div>
-                    <span className="text-xs text-slate-500 block mb-0.5">Version</span>
-                    <span className="font-mono tabular-nums text-sm font-semibold text-slate-900">
-                      {maskWbsedcl(release.tag_name)}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-xs text-slate-500 block mb-0.5">Updated</span>
-                    <span className="font-mono tabular-nums text-sm font-semibold text-slate-900">
-                      {new Date(release.published_at).toLocaleDateString()}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-xs text-slate-500 block mb-0.5">Downloads</span>
-                    <span className="font-mono tabular-nums text-sm font-semibold text-emerald-700">
-                      {release.assets
-                        .reduce(
-                          (sum, a) =>
-                            sum + getDownloadCount(a.name + release.tag_name, a.download_count),
-                          0
-                        )
-                        .toLocaleString()}
-                    </span>
-                  </div>
-                </div>
+            {!release && hubReleases === null && (
+              <div className="mt-3 pt-3 border-t border-slate-100 flex gap-3 animate-pulse">
+                <div className="h-6 w-24 bg-slate-100 rounded-md" />
+                <div className="h-6 w-28 bg-slate-100 rounded-md" />
+                <div className="h-6 w-20 bg-slate-100 rounded-md" />
               </div>
-            ) : hubReleases === null ? (
-              <div className="grid grid-cols-3 border-t border-slate-200 pt-5 gap-4 animate-pulse">
-                <div className="h-9 bg-slate-100 rounded-md" />
-                <div className="h-9 bg-slate-100 rounded-md" />
-                <div className="h-9 bg-slate-100 rounded-md" />
-              </div>
-            ) : (
-              <div className="p-5 border border-dashed border-slate-300 rounded-lg bg-slate-50 flex flex-col gap-1.5">
-                <p className="text-slate-800 text-sm font-semibold">
-                  No official installers found for this tool.
-                </p>
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  No public builds have been published for this utility yet. Please check back
-                  later or contact support if you need assistance.
+            )}
+
+            {!release && hubReleases !== null && (
+              <div className="mt-3 px-3.5 py-2.5 border border-dashed border-slate-300 rounded-lg bg-slate-50/80 flex items-center justify-between gap-2">
+                <p className="text-xs text-slate-600">
+                  <span className="font-semibold text-slate-800">No public installers found yet.</span>{' '}
+                  Check back later or contact support if you need assistance.
                 </p>
               </div>
             )}
@@ -298,8 +338,8 @@ export function Tools() {
 
           {/* Video Tutorial */}
           {ytLink && (
-            <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-              <div className="px-6 py-4 border-b border-slate-200 flex items-center gap-2">
+            <div className="bg-white border border-slate-200/90 rounded-xl overflow-hidden shadow-xs">
+              <div className="px-5 py-3 bg-slate-50/70 border-b border-slate-200 flex items-center gap-2">
                 <PlayCircle className="w-4 h-4 text-blue-700" />
                 <h2 className="font-display text-sm font-bold text-slate-900">Video Walkthrough</h2>
               </div>
@@ -317,12 +357,14 @@ export function Tools() {
 
           {/* README Content */}
           {readme ? (
-            <div className="bg-white border border-slate-200 rounded-xl p-6 md:p-8">
-              <h2 className="font-display text-base font-bold text-slate-900 mb-6 flex items-center gap-2 pb-4 border-b border-slate-200">
+            <div className="bg-white border border-slate-200/90 rounded-xl overflow-hidden shadow-xs">
+              <div className="px-5 py-3.5 bg-slate-50/70 border-b border-slate-200 flex items-center gap-2">
                 <BookOpen className="w-4 h-4 text-blue-700" />
-                Documentation
-              </h2>
-              <div className="markdown-body max-w-none">
+                <h2 className="font-display text-sm font-bold text-slate-900">
+                  Documentation
+                </h2>
+              </div>
+              <div className="p-5 md:p-6 markdown-body max-w-none">
                 <Markdown
                   remarkPlugins={[remarkGfm]}
                   urlTransform={(uri) => {
@@ -341,7 +383,7 @@ export function Tools() {
               </div>
             </div>
           ) : docLoading ? (
-            <div className="bg-white border border-slate-200 rounded-xl p-6 md:p-8 space-y-3 animate-pulse">
+            <div className="bg-white border border-slate-200/90 rounded-xl p-6 space-y-3 animate-pulse shadow-xs">
               <div className="h-5 w-40 bg-slate-100 rounded" />
               <div className="h-4 w-full bg-slate-100 rounded" />
               <div className="h-4 w-5/6 bg-slate-100 rounded" />

@@ -248,22 +248,26 @@ export function Downloads() {
 
   return (
     <PageTransition>
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex flex-col gap-10 pb-20">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-200 pb-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-7 pb-16">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
           <div>
-            <p className="text-xs font-semibold text-blue-700 mb-2">Release Archive</p>
-            <h1 className="font-display text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight mb-3">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200/70">
+                Release Archive
+              </span>
+            </div>
+            <h1 className="font-display text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
               Downloads Center
             </h1>
-            <p className="text-base text-slate-600 max-w-2xl">
-              Browse official installers and archived versions directly from the WBTools release hub.
+            <p className="text-sm text-slate-500 mt-1 max-w-2xl">
+              Official installers and archived versions from the WBTools release hub.
             </p>
           </div>
           <button
             type="button"
             onClick={handleManualRefresh}
             disabled={refreshing}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 transition-colors duration-150 disabled:opacity-60 whitespace-nowrap shrink-0 self-start sm:self-end"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 shadow-xs text-xs font-semibold text-slate-700 transition-colors duration-150 disabled:opacity-60 whitespace-nowrap shrink-0 self-start sm:self-center"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-blue-700' : ''}`} />
             {refreshing ? 'Syncing' : 'Refresh Releases'}
