@@ -42,18 +42,27 @@ const AppFeatureCard = ({
   to,
   webAppUrl,
   release,
+  index = 0,
 }: {
   title: string;
   description: string;
   to: string;
   webAppUrl?: string;
   release: ReleaseItemData | null;
+  index?: number;
 }) => {
   const primaryAsset = release?.assets?.[0];
   const assetUrl = primaryAsset?.browser_download_url || primaryAsset?.download_url;
 
   return (
-    <article className="bg-white border border-slate-200 hover:border-slate-300 rounded-xl p-6 flex flex-col transition-colors duration-150">
+    <motion.article
+      initial={{ opacity: 0, y: 14 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.15 }}
+      whileHover={{ y: -3 }}
+      transition={{ duration: 0.24, delay: Math.min(index * 0.05, 0.25), ease: [0.16, 1, 0.3, 1] }}
+      className="bg-white border border-slate-200 hover:border-slate-300 hover:shadow-md rounded-xl p-6 flex flex-col transition-all duration-200"
+    >
       <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 mb-3">
         <span className="font-medium text-blue-700">Official Release</span>
         {release && (
@@ -115,12 +124,19 @@ const AppFeatureCard = ({
           </a>
         )}
       </div>
-    </article>
+    </motion.article>
   );
 };
 
 const DisconnectionWebCard = () => (
-  <article className="bg-white border border-slate-200 hover:border-slate-300 rounded-xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-5 transition-colors duration-150">
+  <motion.article
+    initial={{ opacity: 0, y: 12 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true, amount: 0.15 }}
+    whileHover={{ y: -2 }}
+    transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+    className="bg-white border border-slate-200 hover:border-slate-300 hover:shadow-md rounded-xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-5 transition-all duration-200"
+  >
     <div className="flex items-start gap-4 min-w-0">
       <div className="shrink-0 w-12 h-12 rounded-xl bg-amber-50 border border-amber-200/80 flex items-center justify-center">
         <PowerOff className="w-5 h-5 text-amber-700" />
@@ -152,11 +168,18 @@ const DisconnectionWebCard = () => (
         <ExternalLink className="w-3.5 h-3.5" />
       </a>
     </div>
-  </article>
+  </motion.article>
 );
 
 const EstimatorWebCard = () => (
-  <article className="bg-white border border-slate-200 hover:border-slate-300 rounded-xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-5 transition-colors duration-150">
+  <motion.article
+    initial={{ opacity: 0, y: 12 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true, amount: 0.15 }}
+    whileHover={{ y: -2 }}
+    transition={{ duration: 0.22, delay: 0.06, ease: [0.16, 1, 0.3, 1] }}
+    className="bg-white border border-slate-200 hover:border-slate-300 hover:shadow-md rounded-xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-5 transition-all duration-200"
+  >
     <div className="flex items-start gap-4 min-w-0">
       <div className="shrink-0 w-12 h-12 rounded-xl bg-blue-50 border border-blue-200/80 flex items-center justify-center">
         <Zap className="w-5 h-5 text-blue-700" />
@@ -188,7 +211,7 @@ const EstimatorWebCard = () => (
         <ExternalLink className="w-3.5 h-3.5" />
       </a>
     </div>
-  </article>
+  </motion.article>
 );
 
 const Home = () => {
@@ -237,40 +260,65 @@ const Home = () => {
         {/* Hero Split */}
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-stretch">
           <div className="lg:col-span-7 flex flex-col justify-center py-2">
-            <p className="text-xs font-semibold text-blue-700 tracking-wide mb-3">
+            <motion.p
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+              className="text-xs font-semibold text-blue-700 tracking-wide mb-3"
+            >
               Utility Operations &amp; Field Engineering
-            </p>
-            <h1 className="font-display text-4xl sm:text-5xl font-extrabold text-slate-900 tracking-tight leading-[1.08] mb-5 max-w-2xl">
+            </motion.p>
+            <motion.h1
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.28, delay: 0.05, ease: [0.16, 1, 0.3, 1] }}
+              className="font-display text-4xl sm:text-5xl font-extrabold text-slate-900 tracking-tight leading-[1.08] mb-5 max-w-2xl"
+            >
               Precision software for field inspections and line estimation.
-            </h1>
-            <p className="text-base sm:text-lg text-slate-600 leading-relaxed max-w-xl mb-8">
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.28, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+              className="text-base sm:text-lg text-slate-600 leading-relaxed max-w-xl mb-8"
+            >
               Access verified desktop releases, search consumer meter photography, draft LT/HT line
               layouts, and coordinate disconnection workflows from one unified portal.
-            </p>
-            <div className="flex flex-wrap items-center gap-3">
+            </motion.p>
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.28, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+              className="flex flex-wrap items-center gap-3"
+            >
               <Link
                 to="/tools"
-                className="inline-flex items-center gap-2 px-5 py-3 rounded-lg bg-blue-700 hover:bg-blue-800 text-white text-sm font-semibold transition-colors duration-150 whitespace-nowrap shrink-0"
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-lg bg-blue-700 hover:bg-blue-800 text-white text-sm font-semibold transition-all duration-150 hover:shadow-sm active:scale-[0.98] whitespace-nowrap shrink-0"
               >
                 Explore Tools
                 <ArrowRight className="w-4 h-4" />
               </Link>
               <Link
                 to="/downloads"
-                className="inline-flex items-center gap-2 px-5 py-3 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 text-sm font-semibold transition-colors duration-150 whitespace-nowrap shrink-0"
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 text-sm font-semibold transition-all duration-150 active:scale-[0.98] whitespace-nowrap shrink-0"
               >
                 Browse Releases
               </Link>
-            </div>
+            </motion.div>
           </div>
 
-          <div className="lg:col-span-5">
-            <div className="h-full min-h-[260px] rounded-xl border border-slate-200 bg-white overflow-hidden">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.97 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.35, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
+            className="lg:col-span-5"
+          >
+            <div className="h-full min-h-[260px] rounded-xl border border-slate-200 bg-white overflow-hidden shadow-xs group">
               {!heroImgError ? (
                 <img
                   src={heroWorkspaceImg}
                   alt="Electrical power distribution engineering tablet and precision drafting calipers"
-                  className="w-full h-full lg:h-full object-cover"
+                  className="w-full h-full lg:h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.02]"
                   referrerPolicy="no-referrer"
                   onError={() => setHeroImgError(true)}
                 />
@@ -282,13 +330,16 @@ const Home = () => {
                 </div>
               )}
             </div>
-          </div>
+          </motion.div>
         </section>
 
         {/* Full-Width 4-Column Specification Strip */}
-        <section
+        <motion.section
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.28, delay: 0.18, ease: [0.16, 1, 0.3, 1] }}
           aria-label="Platform capabilities overview"
-          className="bg-white border border-slate-200 rounded-xl grid grid-cols-2 lg:grid-cols-4 divide-y lg:divide-y-0 lg:divide-x divide-slate-200"
+          className="bg-white border border-slate-200 rounded-xl grid grid-cols-2 lg:grid-cols-4 divide-y lg:divide-y-0 lg:divide-x divide-slate-200 shadow-xs"
         >
           <div className="p-5">
             <p className="text-xs text-slate-500 mb-1">Desktop Suites</p>
@@ -308,7 +359,7 @@ const Home = () => {
             <p className="text-xs text-slate-500 mb-1">Export Formats</p>
             <p className="font-display text-2xl font-bold text-slate-900">PDF &amp; Excel</p>
           </div>
-        </section>
+        </motion.section>
 
         {/* Desktop & Repository Suites */}
         <section>
@@ -334,9 +385,10 @@ const Home = () => {
               repos.length === 2 ? "md:grid-cols-2" : "md:grid-cols-2 lg:grid-cols-3"
             }`}
           >
-            {repos.map((repo) => (
+            {repos.map((repo, idx) => (
               <AppFeatureCard
                 key={repo.id}
+                index={idx}
                 title={repo.title}
                 description={repo.description || ""}
                 to={`/tools?app=${repo.repoName.split("/")[1]}`}
