@@ -44,6 +44,14 @@ export const DEFAULT_REPOS: RepoRecord[] = [
     createdAt: 2,
     webAppUrl: '/estimator/',
   },
+  {
+    id: 'hackers-lab_xvmd',
+    repoName: 'Hackers-lab/xvmd',
+    title: 'XVMD Windows 11 Assistant',
+    description:
+      'Windows 11 compatibility utility for Vidyut Manchitra (XVMD). Installs the required WMIC compatibility shim with one click and launches XVMD directly.',
+    createdAt: 3,
+  },
 ];
 
 // Offline fallback releases pointing to the central releases hub
@@ -95,6 +103,24 @@ export const REAL_FALLBACK_RELEASES: Record<string, ReleaseItemData[]> = {
           size: 56 * 1024 * 1024,
           browser_download_url:
             'https://github.com/Hackers-lab/releases/releases/download/estimator-v9.4/ERP_Estimate_Setup_v9.4.exe',
+          download_count: 0,
+        },
+      ],
+    },
+  ],
+  'Hackers-lab/xvmd': [
+    {
+      id: 2800,
+      name: 'XVMD Windows 11 Assistant v2.8',
+      tag_name: 'v2.8',
+      published_at: '2026-11-25T07:13:00Z',
+      body: '### XVMD Windows 11 Assistant v2.8\n- Removed full-screen / resizable window option.\n- Improved UI with live compatibility status card and DPI awareness.\n- Added official XVMD application icon.',
+      assets: [
+        {
+          name: 'XVMD_Windows11_Manager_v2.8.exe',
+          size: 137728,
+          browser_download_url:
+            'https://github.com/Hackers-lab/releases/releases/download/xvmd-v2.8/XVMD_Windows11_Manager_v2.8.exe',
           download_count: 0,
         },
       ],
