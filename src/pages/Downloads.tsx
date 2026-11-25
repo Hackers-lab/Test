@@ -274,9 +274,15 @@ export function Downloads() {
           </button>
         </div>
 
-        <div className="flex flex-col gap-14">
-          {appReleasesList.map((app) => (
-            <section key={app.repo} className="flex flex-col">
+        <div className="flex flex-col gap-12">
+          {appReleasesList.map((app, appIdx) => (
+            <motion.section
+              key={app.repo}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.22, delay: Math.min(appIdx * 0.05, 0.25), ease: 'easeOut' }}
+              className="flex flex-col"
+            >
               <div className="flex flex-wrap items-center justify-between gap-4 mb-5">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center shrink-0">
@@ -319,7 +325,7 @@ export function Downloads() {
                   toolTitle={maskWbsedcl(app.title)}
                 />
               </div>
-            </section>
+            </motion.section>
           ))}
         </div>
       </div>

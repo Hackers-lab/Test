@@ -14,6 +14,7 @@ import {
   type RepoRecord,
 } from '../lib/github';
 import { useState, useEffect, useMemo } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   Download,
   PlayCircle,
@@ -201,20 +202,28 @@ export function Tools() {
               const isSelected = selectedRepoSlug === repo.repoName;
               const repoRelease = matchLatestReleaseForRepo(hubReleases, repo.repoName);
               return (
-                <button
+                <motion.button
                   key={repo.id}
                   type="button"
+                  whileTap={{ scale: 0.985 }}
                   onClick={() => {
                     setSelectedRepoSlug(repo.repoName);
                     navigate(`/tools?app=${repo.repoName.split('/')[1]}`, { replace: true });
                   }}
-                  className={`text-left px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 flex items-center justify-between gap-2 ${
+                  className={`relative text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-150 flex items-center justify-between gap-2 ${
                     isSelected
-                      ? 'bg-blue-50/90 text-blue-700 font-semibold border border-blue-200/80 shadow-2xs'
-                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-transparent'
+                      ? 'text-blue-700 font-semibold'
+                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                   }`}
                 >
-                  <span className="flex items-center gap-2 min-w-0">
+                  {isSelected && (
+                    <motion.div
+                      layoutId="active-tool-pill"
+                      transition={{ type: 'spring', bounce: 0.18, duration: 0.35 }}
+                      className="absolute inset-0 rounded-lg bg-blue-50/95 border border-blue-200/80 shadow-2xs -z-0"
+                    />
+                  )}
+                  <span className="relative z-10 flex items-center gap-2 min-w-0">
                     <span
                       className={`w-1.5 h-1.5 rounded-full shrink-0 transition-colors ${
                         isSelected ? 'bg-blue-600' : 'bg-slate-300'
@@ -224,16 +233,16 @@ export function Tools() {
                   </span>
                   {repoRelease && (
                     <span
-                      className={`font-mono tabular-nums text-[10px] px-1.5 py-0.5 rounded shrink-0 ${
+                      className={`relative z-10 font-mono tabular-nums text-[10px] px-1.5 py-0.5 rounded shrink-0 ${
                         isSelected
-                          ? 'bg-blue-100/80 text-blue-700 font-semibold'
+                          ? 'bg-blue-100/90 text-blue-700 font-semibold'
                           : 'bg-slate-100 text-slate-500'
                       }`}
                     >
                       {maskWbsedcl(repoRelease.tag_name)}
                     </span>
                   )}
-                </button>
+                </motion.button>
               );
             })}
           </div>
@@ -242,7 +251,15 @@ export function Tools() {
 
       {/* Main Panel */}
       <section className="col-span-1 lg:col-span-9 flex flex-col gap-5 min-h-[500px]">
-        <div className="flex flex-col gap-5">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={selectedRepoSlug || 'empty'}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.18, ease: 'easeOut' }}
+            className="flex flex-col gap-5"
+          >
           {/* Compact Release Header */}
           <div className="bg-white border border-slate-200/90 rounded-xl p-4 sm:p-5 shadow-xs">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -398,7 +415,8 @@ export function Tools() {
               toolTitle={currentRepoTitle || 'Tool'}
             />
           )}
-        </div>
+          </motion.div>
+        </AnimatePresence>
       </section>
     </div>
   );
